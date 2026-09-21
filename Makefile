@@ -49,3 +49,6 @@ train:           ## Phase 1: fine-tune on nfcorpus, evaluate on trec-covid
 
 check-first-stage: ## validate BM25 against published BEIR numbers
 	$(PY) scripts/check_first_stage.py
+
+frontier:        ## render the quality/cost Pareto frontier
+	$(PY) -c "from frontierrank.reporting import *; print('use reporting.Point + plot_frontier with measured runs')"
