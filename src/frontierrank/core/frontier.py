@@ -103,30 +103,66 @@ def compute_frontier(u, sigma, k: int = 10, z: float = 1.64,
     return Frontier(members, k, order, margin, p)
 
 
-def expected_regret(u, sigma, rel_hat, k: int = 10, n_samples: int = 256,
-                    rng: np.random.Generator | None = None) -> float:
-    """E[nDCG@k(oracle) - nDCG@k(current)] under the model's own uncertainty.
+def expected_regret(u, sigma, rel_hat=None, k: int = 10, n_samples: int = 256,
+                    rng: np.random.Generator | None = None,
+                    rel_from_utility=None) -> float:
+    """E[nDCG@k lost by shipping the current order instead of the true one].
 
-    rel_hat is the expected graded relevance per candidate (e.g. from the
-    ordinal head). We sample utilities, re-rank, and compare the nDCG of the
-    ranking we would ship against the nDCG of the ranking that sample implies.
+    The definition matters, and the obvious implementation is wrong. Scoring
+    both the shipped ranking and each sampled alternative with the *point
+    estimate* of relevance makes the shipped ranking optimal by construction --
+    it is the argsort of the very quantity being scored -- so the difference is
+    never positive and the regret is identically zero. A controller reading
+    that number can never justify buying anything.
+
+    The correct quantity treats each draw as a hypothesis about the truth:
+
+        regret = E_{u~ ~ N(u_hat, sigma)} [ nDCG@k(rank by u~; truth u~)
+                                          - nDCG@k(rank by u_hat; truth u~) ]
+
+    Under any draw, ranking by that draw is optimal, so the gap is >= 0, and it
+    shrinks to 0 as sigma -> 0. That is what "how much might my uncertainty be
+    costing me?" actually means.
+
+    `rel_from_utility` maps a utility onto graded relevance for the gain
+    function; the default clips at zero, which keeps 2^rel - 1 well behaved and
+    treats negative-utility candidates as irrelevant rather than as harmful.
+    `rel_hat` is accepted for callers that have a separate relevance estimate
+    (an ordinal head); it only sets the SCALE of the gain, never the ordering,
+    because the ordering is what is uncertain.
     """
     rng = rng or np.random.default_rng()
     u = np.asarray(u, dtype=float)
     sigma = np.asarray(sigma, dtype=float)
-    rel = np.asarray(rel_hat, dtype=float)
     n = u.size
     k = min(k, n)
+    if k < 1:
+        return 0.0
     disc = _discount(k)
+    to_rel = rel_from_utility or (lambda x: np.clip(x, 0.0, None))
+
+    if rel_hat is not None:
+        # rescale utilities onto the caller's relevance range, preserving order
+        rel_hat = np.asarray(rel_hat, dtype=float)
+        lo, hi = float(np.min(rel_hat)), float(np.max(rel_hat))
+        span = max(hi - lo, 1e-9)
+        u_lo, u_hi = float(np.min(u)), float(np.max(u))
+        u_span = max(u_hi - u_lo, 1e-9)
+
+        def to_rel(x, _lo=lo, _span=span, _ulo=u_lo, _uspan=u_span):
+            return _lo + (np.asarray(x) - _ulo) / _uspan * _span
 
     shipped = np.argsort(-u)[:k]
-    ideal = np.sort(_gain(rel))[::-1][:k]
-    idcg = float(np.sum(ideal * disc))
-    if idcg <= 0:
-        return 0.0
-
-    dcg_shipped = float(np.sum(_gain(rel[shipped]) * disc))
     draws = u[None, :] + rng.normal(0.0, 1.0, size=(n_samples, n)) * sigma[None, :]
-    top = np.argsort(-draws, axis=1)[:, :k]
-    dcg_alt = np.sum(_gain(rel)[top] * disc[None, :], axis=1)
-    return float(np.mean(np.maximum(dcg_alt - dcg_shipped, 0.0)) / idcg)
+
+    losses = np.empty(n_samples)
+    for i in range(n_samples):
+        rel = _gain(to_rel(draws[i]))
+        best = np.argsort(-draws[i])[:k]
+        idcg = float(np.sum(np.sort(rel)[::-1][:k] * disc))
+        if idcg <= 0:
+            losses[i] = 0.0
+            continue
+        losses[i] = (float(np.sum(rel[best] * disc))
+                     - float(np.sum(rel[shipped] * disc))) / idcg
+    return float(np.mean(np.maximum(losses, 0.0)))

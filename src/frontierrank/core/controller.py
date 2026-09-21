@@ -71,6 +71,18 @@ class Controller:
         the operating point. lambda_cost = 1000 means you will pay $0.001 for
         one nDCG@10 point per query. Sweep it to draw the Pareto curve; do not
         tune it to a target escalation rate, which inverts cause and effect.
+
+        The useful range is much lower than it looks. A teacher call costs
+        $0.000336 and resolves roughly 0.7 of the current regret, so it is
+        worth buying when
+
+            lambda_cost < 0.7 * regret / 0.000336  ~=  2000 * regret
+
+        At a typical regret of 0.03 that is lambda_cost < ~67. Sweeping
+        1e2..1e6, which looks like a natural range, sits entirely inside the
+        "never escalate" regime and produces a flat curve that looks like a
+        broken controller. `break_even_lambda` computes the boundary so the
+        sweep can be centred on it.
         """
         self.actions = list(actions or DEFAULT_ACTIONS)
         self.lambda_cost = lambda_cost
@@ -78,6 +90,16 @@ class Controller:
         self.teacher_batch = teacher_batch
         self.min_value = min_value
         self.rng = rng or np.random.default_rng()
+
+    def break_even_lambda(self, regret: float, action: str | None = None) -> float:
+        """The lambda_cost at which an action stops paying for itself.
+
+        Centre a Pareto sweep on this. A sweep that never crosses it produces a
+        flat curve and looks like a bug in the controller.
+        """
+        specs = [a for a in self.actions if action is None or a.name == action]
+        vals = [a.resolves * regret / max(a.cost_usd, 1e-12) for a in specs]
+        return float(max(vals)) if vals else float("inf")
 
     def decide(self, u, sigma, rel_hat, frontier: Frontier,
                pool_quality: float | None = None) -> ControllerDecision:
