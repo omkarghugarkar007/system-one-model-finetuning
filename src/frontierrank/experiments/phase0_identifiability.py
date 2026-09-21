@@ -295,12 +295,25 @@ def anchor_recovery(fit: AdditiveFit, design: BlockDesign,
 
 def anchored_slate_design(n_candidates: int, anchor_ids, slate_size: int = 10,
                           n_slates: int = 40,
-                          rng: np.random.Generator | None = None) -> BlockDesign:
+                          rng: np.random.Generator | None = None,
+                          grades=None, homogeneous_frac: float = 0.0) -> BlockDesign:
     """Production-shaped slates: the same anchors in EVERY slate, plus candidates.
 
-    This differs from `make_block_design`, which samples freely and leaves
-    anchor coverage to chance. Here every slate is calibratable by construction,
-    which is what inference actually does.
+    `homogeneous_frac` is the variable that decides whether this test has
+    anything to detect. Anchors correct the per-slate offset c_S, so they can
+    only help to the extent that c_S actually varies -- and c_S varies with
+    slate *composition*. Drawing candidates uniformly gives every slate roughly
+    the same difficulty, c_S barely moves, and anchoring has nothing to fix.
+
+    That is not a rigged test, it is the production regime: plan.md Part VIII
+    recommends dealing candidates round-robin precisely because it makes slate
+    composition near-constant. But it means "anchoring does not help" measured
+    at homogeneous_frac=0 is a statement about the easy regime only.
+
+    Setting it above zero draws a fraction of slates from a single grade, which
+    is the streaming / blocked-slate case where Part VIII reports anchors as
+    non-optional (+0.223 nDCG@10). Sweeping it is how you find out whether
+    anchoring is useless or merely unnecessary when you slate well.
     """
     rng = rng or np.random.default_rng(0)
     anchor_ids = np.asarray(anchor_ids)
@@ -308,9 +321,22 @@ def anchored_slate_design(n_candidates: int, anchor_ids, slate_size: int = 10,
     per = slate_size - anchor_ids.size
     if per < 1:
         raise ValueError("anchors consume the entire slate")
+
+    by_grade = {}
+    if grades is not None and homogeneous_frac > 0:
+        g = np.asarray(grades)
+        for v in np.unique(g[others]):
+            pool = others[g[others] == v]
+            if pool.size >= per:
+                by_grade[float(v)] = pool
+
     slates = []
     for _ in range(n_slates):
-        take = rng.choice(others, size=min(per, others.size), replace=False)
+        if by_grade and rng.random() < homogeneous_frac:
+            pool = by_grade[float(rng.choice(list(by_grade)))]
+        else:
+            pool = others
+        take = rng.choice(pool, size=min(per, pool.size), replace=False)
         slates.append(sorted(np.concatenate([anchor_ids, take]).tolist()))
     return BlockDesign(slates, np.zeros(n_candidates), n_candidates)
 

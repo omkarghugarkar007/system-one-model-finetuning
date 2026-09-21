@@ -1,0 +1,72 @@
+{
+  "by_anchor_count": {
+    "1": {
+      "r_naive": 0.400944658141992,
+      "r_anchored": 0.39965011866621347,
+      "delta_r": -0.0012945394757784944,
+      "rmse_anchored": 1.0782705041516325,
+      "anchor_residual_mean": 0.0,
+      "slope_mean": 1.7117779529618378,
+      "slope_std": 3.3306690738754696e-16,
+      "distinct_anchor_utilities": 1.0,
+      "slope_prior": 1.7117779529618378,
+      "delta_r_std": 0.015337659185205544,
+      "n_queries": 10
+    },
+    "2": {
+      "r_naive": 0.3760478462955665,
+      "r_anchored": 0.40021496648169236,
+      "delta_r": 0.0241671201861259,
+      "rmse_anchored": 1.0874235768316682,
+      "anchor_residual_mean": 0.5789043985608675,
+      "slope_mean": 1.6938151122826166,
+      "slope_std": 0.15795371702362423,
+      "distinct_anchor_utilities": 2.0,
+      "slope_prior": 1.7117779529618378,
+      "delta_r_std": 0.061878896554294606,
+      "n_queries": 10
+    },
+    "3": {
+      "r_naive": 0.39866032036840954,
+      "r_anchored": 0.41329096335730375,
+      "delta_r": 0.014630642988894202,
+      "rmse_anchored": 0.9207518071146332,
+      "anchor_residual_mean": 0.6348414028951568,
+      "slope_mean": 1.495722396302686,
+      "slope_std": 0.22983039306108216,
+      "distinct_anchor_utilities": 2.9,
+      "slope_prior": 1.7117779529618378,
+      "delta_r_std": 0.04131275423090003,
+      "n_queries": 10
+    },
+    "4": {
+      "r_naive": 0.38243669469056896,
+      "r_anchored": 0.3782783562835032,
+      "delta_r": -0.004158338407065765,
+      "rmse_anchored": 0.8427983720837661,
+      "anchor_residual_mean": 0.6415352388130106,
+      "slope_mean": 1.2130961349152776,
+      "slope_std": 0.19995221607342145,
+      "distinct_anchor_utilities": 2.8,
+      "slope_prior": 1.7117779529618378,
+      "delta_r_std": 0.07102882014097871,
+      "n_queries": 10
+    },
+    "6": {
+      "r_naive": 0.41353582668088373,
+      "r_anchored": 0.3599365670030717,
+      "delta_r": -0.05359925967781202,
+      "rmse_anchored": 0.7941391668992119,
+      "anchor_residual_mean": 0.6620531997545599,
+      "slope_mean": 1.1361195820572803,
+      "slope_std": 0.17073063162363303,
+      "distinct_anchor_utilities": 3.0,
+      "slope_prior": 1.7117779529618378,
+      "delta_r_std": 0.1834720960768641,
+      "n_queries": 10
+    }
+  },
+  "n_queries": 10,
+  "best_anchor_count": 3,
+  "best_delta_r": 0.014630642988894202
+}

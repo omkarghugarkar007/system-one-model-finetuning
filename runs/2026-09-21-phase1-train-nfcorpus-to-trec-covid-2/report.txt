@@ -1,0 +1,57 @@
+
+Setup
+=====
+Laya on mps; {'trainable_M': 422.3, 'total_M': 422.3, 'frozen_frac': 0.0}
+layout=state, M=10 (6 candidates + 4 pivots), 37 tokens/candidate
+train Dataset(nfcorpus/test: 3,633 docs, 323 queries, 12,334 judgements, grades 0-2)
+eval  Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+anchors: teacher-graded (Jev), continuous utilities, cached
+train slates: {'slates': 2000, 'queries': 250, 'options_per_slate': 10, 'candidates_per_slate': 6, 'grade_mean': 0.257, 'grade_hist': {0: 9371, 1: 2175, 2: 454}, 'slates_with_a_positive': 0.227, 'difficulty': {'hard': 0.276, 'easy': 0.2035, 'mixed': 0.5205}}
+
+Training
+========
+[base] before training: {'ndcg_anchored': 0.4551, 'ndcg_naive': 0.5173, 'ndcg_bm25': 0.5278, 'n_queries': 15}
+
+[warmup] {'trainable_M': 27.6, 'total_M': 422.3, 'frozen_frac': 0.935}
+  [warmup] ep0 step 10/62 anchor=0.6377 anchor_mono=0.5102 cal=0.1524 list=1.9384 ord=0.4554 pair=0.1077 total=3.3189  68s
+  [warmup] ep0 step 20/62 anchor=0.6101 anchor_mono=0.4468 cal=0.0738 list=1.8426 ord=0.2618 pair=0.1104 total=2.9912  138s
+  [warmup] ep0 step 30/62 anchor=0.6331 anchor_mono=0.4399 cal=0.0698 list=1.7891 ord=0.2451 pair=0.1044 total=2.9389  207s
+  [warmup] ep0 step 40/62 anchor=0.6253 anchor_mono=0.4388 cal=0.0654 list=1.7921 ord=0.2287 pair=0.1071 total=2.9238  276s
+  [warmup] ep0 step 50/62 anchor=0.6319 anchor_mono=0.4399 cal=0.0728 list=1.7856 ord=0.2476 pair=0.0996 total=2.9336  345s
+  [warmup] ep0 step 60/62 anchor=0.6435 anchor_mono=0.4344 cal=0.0737 list=1.7862 ord=0.2506 pair=0.0987 total=2.9447  414s
+  [warmup] eval @ 60: {'ndcg_anchored': 0.5136, 'ndcg_naive': 0.5241, 'ndcg_bm25': 0.5278, 'n_queries': 15}
+
+[full] {'trainable_M': 422.3, 'total_M': 422.3, 'frozen_frac': 0.0}
+  [full] ep0 step 10/125 anchor=0.6109 anchor_mono=0.4231 cal=0.0665 list=1.7832 ord=0.2322 pair=0.1032 total=2.8915  266s
+  [full] ep0 step 20/125 anchor=0.5370 anchor_mono=0.3568 cal=0.0661 list=1.7683 ord=0.2299 pair=0.0959 total=2.7607  542s
+  [full] ep0 step 30/125 anchor=0.5116 anchor_mono=0.3202 cal=0.0657 list=1.7666 ord=0.2273 pair=0.0848 total=2.7024  809s
+  [full] ep0 step 40/125 anchor=0.4415 anchor_mono=0.2870 cal=0.0586 list=1.7469 ord=0.2036 pair=0.0897 total=2.5820  1076s
+  [full] ep0 step 50/125 anchor=0.4206 anchor_mono=0.2855 cal=0.0637 list=1.7387 ord=0.2201 pair=0.0843 total=2.5601  1360s
+  [full] ep0 step 60/125 anchor=0.3642 anchor_mono=0.2555 cal=0.0639 list=1.7309 ord=0.2199 pair=0.0887 total=2.4854  1618s
+  [full] eval @ 60: {'ndcg_anchored': 0.6004, 'ndcg_naive': 0.5979, 'ndcg_bm25': 0.5278, 'n_queries': 15}
+  [full] ep1 step 70/125 anchor=0.2701 anchor_mono=0.1929 cal=0.0441 list=1.3889 ord=0.1560 pair=0.0655 total=1.9431  1926s
+  [full] ep1 step 80/125 anchor=0.3229 anchor_mono=0.2315 cal=0.0561 list=1.7199 ord=0.1976 pair=0.0790 total=2.3924  2183s
+  [full] ep1 step 90/125 anchor=0.3225 anchor_mono=0.2335 cal=0.0643 list=1.7248 ord=0.2209 pair=0.0772 total=2.4160  2600s
+  [full] ep1 step 100/125 anchor=0.3004 anchor_mono=0.2147 cal=0.0597 list=1.7280 ord=0.2065 pair=0.0799 total=2.3786  4707s
+  [full] ep1 step 110/125 anchor=0.3080 anchor_mono=0.2188 cal=0.0560 list=1.7213 ord=0.1945 pair=0.0755 total=2.3675  5001s
+  [full] ep1 step 120/125 anchor=0.2917 anchor_mono=0.2008 cal=0.0581 list=1.7365 ord=0.2015 pair=0.0730 total=2.3604  5321s
+  [full] eval @ 120: {'ndcg_anchored': 0.6068, 'ndcg_naive': 0.6064, 'ndcg_bm25': 0.5278, 'n_queries': 15}
+[final] {'ndcg_anchored': 0.6068, 'ndcg_naive': 0.6064, 'ndcg_bm25': 0.5278, 'n_queries': 15}
+
+Result
+======
+   stage   step   anchored    naive     BM25
+----------------------------------------------
+    base      0     0.4551   0.5173   0.5278
+  warmup     60     0.5136   0.5241   0.5278
+    full     60     0.6004   0.5979   0.5278
+    full    120     0.6068   0.6064   0.5278
+   final     -1     0.6068   0.6064   0.5278
+
+  fine-tuning moved anchored nDCG@10 by +0.1517
+  anchored vs naive at the end          +0.0004
+  BM25 floor                            0.5278
+
+  Phase 1 gate: anchored must beat naive by a large margin. A small
+  or negative margin means the calibration is not earning its option
+  slots, and the honest move is the pointwise rubric instead.

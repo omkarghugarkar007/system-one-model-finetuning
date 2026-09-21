@@ -1,0 +1,36 @@
+{
+  "name": "phase0-anchors",
+  "status": "ok",
+  "git_commit": "31d2105-dirty",
+  "started": 1789994154.835813,
+  "wall_seconds": 334.9,
+  "config": {
+    "dataset": "trec-covid",
+    "queries": 10,
+    "depth": 100,
+    "slate_size": 10,
+    "slates_per_query": 30,
+    "probes_per_grade": 12,
+    "anchor_counts": [
+      1,
+      2,
+      3,
+      4,
+      6
+    ],
+    "layout": "state",
+    "anchor_spread": "grade",
+    "signature": "title+lexical",
+    "model": "data/cache/laya",
+    "checkpoint": "runs/2026-09-21-phase1-train-nfcorpus-to-trec-covid-2/checkpoint.pt",
+    "seed": 0
+  },
+  "env": {
+    "python": "3.12.13",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "numpy": "2.5.3",
+    "torch": "2.14.0",
+    "mps": true,
+    "cuda": false
+  }
+}

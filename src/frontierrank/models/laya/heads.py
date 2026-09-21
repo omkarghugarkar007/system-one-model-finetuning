@@ -131,6 +131,49 @@ class FrontierRankModel(nn.Module):
             p.requires_grad = not frozen
         return self
 
+    def freeze_lower_layers(self, n_frozen: int):
+        """Freeze the bottom `n_frozen` encoder layers. The memory lever on a Mac.
+
+        Optimiser state dominates: AdamW keeps two fp32 moments per trainable
+        parameter, so 422M trainable params cost ~3.4 GB of state on top of
+        1.7 GB of parameters and 1.7 GB of gradients. On a 16 GB M4 shared with
+        the OS that is what pushes the machine into swap, and a swapping
+        training run goes from 27 s/step to 210 s/step.
+
+        Freezing the lower half is the cheapest fix and costs little for
+        reranking: the bottom layers of a pretrained encoder do general
+        language, and the task-specific work happens near the top. It is a
+        quality/memory trade, so it is reported rather than applied silently.
+        """
+        layers = getattr(self.base.encoder, "layers", None)
+        if layers is None:
+            enc = getattr(self.base.encoder, "encoder", None)
+            layers = getattr(enc, "layer", None) if enc is not None else None
+        if layers is None:
+            raise AttributeError("could not find the encoder's layer list")
+        for i, layer in enumerate(layers):
+            if i < n_frozen:
+                for p in layer.parameters():
+                    p.requires_grad = False
+        # embeddings go with the bottom of the stack
+        if n_frozen > 0:
+            emb = getattr(self.base.encoder, "embeddings", None)
+            if emb is not None:
+                for p in emb.parameters():
+                    p.requires_grad = False
+        return self
+
+    def memory_estimate(self, optimizer: str = "adamw") -> dict:
+        """Rough training footprint in GB, so a config can be checked before it swaps."""
+        tr = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        tot = sum(p.numel() for p in self.parameters())
+        states = {"adamw": 2, "sgd": 0, "sgd_momentum": 1}.get(optimizer, 2)
+        gb = lambda n: round(n * 4 / 1e9, 2)          # noqa: E731 - fp32
+        return {"trainable_M": round(tr / 1e6, 1),
+                "params_GB": gb(tot), "grads_GB": gb(tr),
+                "optimizer_GB": gb(tr * states),
+                "total_GB_excl_activations": gb(tot + tr + tr * states)}
+
     def enable_gradient_checkpointing(self):
         """Non-optional on 16 GB of unified memory at 512 tokens."""
         if hasattr(self.base.encoder, "gradient_checkpointing_enable"):

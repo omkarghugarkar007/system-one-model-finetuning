@@ -1,0 +1,60 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+BM25Index(171,332 docs, 165,572 terms, k1=0.9, b=0.4, stem=True, avgdl=121.0)
+loaded fine-tuned checkpoint: runs/2026-09-21-phase1-train-nfcorpus-to-trec-covid-2/checkpoint.pt
+layout=state, 37 tokens/candidate at M=10
+pivot utilities: Jev fractional expected grade (continuous)
+evaluation truth: qrel grades -- independent of the pivots
+  [1] 1              probes=26 latent spread=1.17
+  [2] 10             probes=36 latent spread=1.68
+  [3] 11             probes=33 latent spread=2.17
+  [4] 12             probes=35 latent spread=1.93
+  [5] 13             probes=36 latent spread=2.09
+  [6] 14             probes=36 latent spread=2.24
+  [7] 15             probes=18 latent spread=2.00
+  [8] 16             probes=26 latent spread=1.86
+  [9] 17             probes=36 latent spread=1.90
+  [10] 18             probes=36 latent spread=1.81
+  [11] 19             probes=33 latent spread=1.18
+  [12] 2              probes=27 latent spread=2.30
+  [13] 20             probes=33 latent spread=1.73
+  [14] 21             probes=29 latent spread=2.13
+
+Falsification test 4 -- cross-slate absolute scale
+==================================================
+Pooled correlation with the graded label, across all slates.
+Naive log-probabilities have no absolute scale; anchoring must beat them.
+
+  A  cands/slate   r naive  r anchored    delta    RMSE         slope   resid  uniq u
+--------------------------------------------------------------------------------------
+  1            9    0.4572      0.4267  -0.0305   0.852    1.08+-0.00   0.000     1.0
+  2            8    0.4887      0.4835  -0.0052   0.951    1.16+-0.12   0.343     2.0
+  3            7    0.4960      0.4953  -0.0007   0.888    1.02+-0.17   0.456     3.0
+  4            6    0.4689      0.4794  +0.0105   0.867    0.96+-0.16   0.420     4.0
+  6            4    0.5158      0.5184  +0.0026   0.770    0.78+-0.14   0.424     6.0
+
+Read
+====
+  best A = 6: r 0.5158 -> 0.5184 (+0.0026)
+  mean delta_r across A : -0.0047
+  per-query SE          : 0.0078  (n=14 queries)
+  distinct anchor utilities available : 6.0
+
+  NOT SIGNIFICANT. The effect is smaller than the per-query
+  standard error, so falsification test 4 neither passes nor
+  fails here -- it is underpowered.
+
+  The binding limit is visible in the last column: a 3-level
+  grade scale gives the anchor regression at most 3 distinct
+  utility values, against a ~0.38-nat measurement floor. The
+  plan's simulation assumed continuous latent utilities, which
+  no BEIR-style corpus provides.
+
+  To make this test decisive, give the pivots continuous
+  utilities -- Jev's Score returns a FRACTIONAL expected grade,
+  so teacher-graded pivots have real leverage where qrel grades
+  do not. That is also what production would use anyway.
+  Cost side regardless: A=6 is 2.50x the passes.
+  throughput: {'forwards': 0, 'slates': 0, 'total_ms': 0.0, 'ms_per_slate': 0.0, 'slates_per_s': 0.0, 'device': 'mps'}

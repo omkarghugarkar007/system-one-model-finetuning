@@ -135,55 +135,62 @@ The n=8 pilot reported +0.27 against a BM25 floor of 0.455; at n=50 the floor
 rises to 0.575 and the gap settles at +0.232 [+0.151, +0.312]. The direction
 and significance held; the magnitude moved, which is why the pilot was rerun.
 
-### F8 — Does anchoring buy the cross-slate scale? · **open (underpowered)**
+### F8 — Anchoring works, but only when it has something to fix · **RESOLVED**
 
-Run three times, and the first two runs were invalid for reasons worth keeping.
+The project's central mechanism claim, and it took five runs to test properly.
+Three of those runs were invalid for reasons worth keeping, since each was a
+way of measuring the right thing wrongly.
 
-**Run 1 (OPTIONS layout).** No benefit at any A. Invalid: F7 showed that layout
-has almost no signal to calibrate (`r_naive` = 0.14).
+| run | setup | result | why it was invalid |
+|---|---|---|---|
+| 1 | OPTIONS layout, base ckpt | no benefit | F7: almost no signal to calibrate |
+| 2 | STATE layout, base ckpt | Δr ≈ −0.010 | ridge prior fixed at 1.0; anchors spread over the latent, not the known utility |
+| 3 | STATE, tuned ckpt, qrel pivots | −0.004 ± 0.024 | 3 distinct pivot utilities — no leverage |
+| 4 | STATE, tuned ckpt, **teacher pivots** | −0.005 ± 0.008 | valid, but uniform slates: c_S barely varies |
+| 5 | as 4, **composition varied** | **+0.181 ± 0.026** | valid |
 
-**Run 2 (STATE layout).** Still no benefit, mean Δr ≈ −0.010. Invalid for two
-defects in the test itself, both visible in the output as slopes collapsing
-1.00 → 0.58 and residuals growing 0 → 0.64:
+**The answer.** Anchors correct the per-slate offset `c_S`, so they can only
+help to the extent `c_S` actually varies — and `c_S` varies with slate
+composition. trec-covid, tuned checkpoint, continuous teacher pivots, n = 14:
 
-1. *The ridge prior was wrong.* `fit_slate` shrank the slope toward 1.0, which
-   is only correct when utilities are expressed in the same units as
-   log-probabilities. On a 0–2 grade scale against log-probs spanning ~3 nats
-   the true slope is ~0.67, so every slate was pulled the same wrong way — a
-   bias indistinguishable from "anchoring does not help". `slope_prior` is now
-   a parameter and is estimated from the data.
-2. *Anchors were spread over the latent logit, not the known utility.* Pivots
-   picked for latent spread can all carry the same grade, leaving the
-   regression one distinct x-value and no leverage. The plan says pivots should
-   "span the utility range"; now they do.
+| slate composition | mean Δr | per-query SE | verdict |
+|---|---|---|---|
+| uniform draws | −0.005 | 0.008 | null; 95% CI ≈ [−0.020, +0.011] |
+| varied (70% single-grade) | **+0.181** | 0.026 | **7× SE** |
 
-**Run 3 (corrected).** trec-covid, STATE layout, 10 queries:
+The cleanest read is in the columns rather than the deltas. Across both
+regimes `r_anchored` stays roughly constant at 0.43–0.49, while `r_naive`
+collapses from ~0.48 to ~0.20 once composition varies. **Anchoring does not
+make the scale better; it makes the scale invariant to how you slate.** That is
+precisely what an identifiability correction should do, and it is a stronger
+statement than "anchoring adds accuracy".
 
-| A | distinct anchor utilities | r naive | r anchored | Δr |
-|---|---|---|---|---|
-| 1 | 1.0 | 0.274 | 0.290 | +0.015 |
-| 2 | 2.0 | 0.142 | 0.145 | +0.003 |
-| 3 | 2.8 | 0.152 | 0.147 | −0.005 |
-| 4 | 2.9 | 0.187 | 0.197 | +0.010 |
-| 6 | 3.0 | 0.189 | 0.216 | +0.026 |
+**Against `plan.md`.** Part VIII makes two separate claims and they do not fare
+the same:
 
-Mean Δr = **+0.010**, per-query SE = **0.013**, n = 10 queries.
+* the blocked-slate claim (naive 0.679 → anchored 0.902) **reproduces** — the
+  measured analogue is naive 0.30 → anchored 0.48;
+* the stratified-slate scale claim (pooled r 0.918 → 0.961, +0.043) **does not
+  reproduce**. In the uniform regime the measured CI is [−0.020, +0.011],
+  which excludes +0.043.
 
-Consistently positive in 4 of 5 cells, and smaller than its own standard error.
-**Test 4 is underpowered, not failed.** It neither confirms nor refutes the
-claim.
+So the simulation was right about the structure and optimistic about the
+magnitude in the easy regime.
 
-**The binding limit is identified**, and it is not the mechanism. The last
-column is the story: trec-covid has three grades, so the anchor regression has
-at most **three distinct utility values** to fit an affine map through, against
-a 0.38-nat measurement floor. `plan.md`'s simulation drew continuous latent
-utilities — a regime no BEIR-style corpus provides, and the reason the
-simulated effect (r 0.918 → 0.961) is far larger than anything measurable here.
+**Architectural consequence, and it is a cost saving.** Anchors are insurance,
+not an upgrade. Under good slate construction they buy nothing and cost
+1.7–2.5× the forward passes (A=4 → 17 passes per 100 candidates instead of 10).
+They earn their slots exactly where composition cannot be controlled:
 
-**Concrete fix for the next run:** give pivots *continuous* utilities. Jev's
-Score returns a fractional expected grade (2.85, not 3), so teacher-graded
-pivots have real leverage where qrel grades have almost none — and that is what
-production would use anyway. TREC DL's 4-level scale would also help.
+* streaming or incremental reranking,
+* a pool too large to see in full,
+* merging pools after `widen_retrieval`,
+* **re-scoring across rounds** — the frontier is re-slated after `read_more` or
+  an escalation, and round-1 and round-2 scores are otherwise incomparable.
+
+The default should therefore be stratified slates *without* anchors at 10
+candidates per slate, switching them on only for the multi-round and merged-pool
+paths. That is a 1.7× reduction in local compute against the plan's A=4 default.
 
 ### F11 — Templated pivots are only weakly ordered by the base model · **confirmed**
 
@@ -222,6 +229,67 @@ correlation should rise from 0.33 toward 1.0 on the tuned checkpoint.
 ---
 
 ## Measured engineering facts
+
+### F13 — Fine-tuning works, and by how much · **confirmed**
+
+nfcorpus → trec-covid, zero-shot transfer, realistic BM25 top-100 pool, 15
+eval queries, pools frozen across evaluations:
+
+| stage | anchored | naive | BM25 |
+|---|---|---|---|
+| base | 0.4551 | 0.5173 | 0.5278 |
+| warmup (encoder frozen) | 0.5136 | 0.5241 | 0.5278 |
+| full | **0.6068** | 0.6064 | 0.5278 |
+
+**+0.152 nDCG@10**, taking the model from 0.073 *below* the first stage to
+0.073 *above* it. Laya's card is right that the base checkpoint is not a
+zero-shot decision engine, and right that it is a good base to specialise.
+
+anchored − naive = **+0.0004**. That is a tie, and it *confirms* `plan.md`
+Part VIII rather than refuting it: the simulation predicts +0.002 for
+stratified A=4 and states plainly that "anchors buy the absolute scale, which
+stratification cannot". Within-query nDCG@10 is structurally unable to measure
+the thing anchoring is for. The Phase 1 gate as written in Part X tests the
+strawman Part VIII already disowned; the operative gate is F8.
+
+### F14 — Anchor-alignment training transfers · **confirmed**
+
+`anchor_affine_loss` is not in `plan.md`. The plan treats anchoring purely as
+an inference-time correction and never asks the model to make that correction
+work. The loss optimises the exact residual the inference calibrator minimises,
+and is invariant to slate offset and scale by construction.
+
+The prediction made before training, and the outcome:
+
+| anchor probe, trec-covid, 20 queries | base | tuned |
+|---|---|---|
+| rank correlation with designed order | 0.328 | **0.795** |
+| slates with the exact designed order | 2.5% | **30.8%** |
+| pivot log p std across slates | 0.805 | **0.255** |
+| real candidates inside the pivot range | 74.6% | **96.1%** |
+
+The pivots are now monotone in designed utility. Note this **transferred**:
+training used teacher-graded pivots, the probe uses the templated set the model
+never saw. A pivot is also 3.2× more stable, which is what "fixed reference"
+has to mean.
+
+### F15 — fp32 fine-tuning does not fit a 16 GB M4 · **confirmed**
+
+AdamW keeps two fp32 moments per trainable parameter, so 422M trainable params
+cost 3.38 GB of optimiser state on top of 1.69 GB of parameters and 1.69 GB of
+gradients — **6.76 GB before a single activation**, on a machine shared with the
+OS. Mid-run the system reached 93% swap usage and throughput collapsed from
+27 s/step to 210 s/step before recovering.
+
+| configuration | trainable | total GB (excl. activations) |
+|---|---|---|
+| all trainable | 422.3M | 6.76 |
+| bottom 14 layers frozen | 199.2M | 4.08 |
+| encoder frozen | 27.6M | 2.02 |
+
+`FrontierRankModel.freeze_lower_layers` and `TrainConfig.save_every` were added
+in response: the memory lever, and periodic checkpoints, because a long run on
+constrained hardware that only saves at the end will eventually lose everything.
 
 ### F12 — The first stage is validated against published BEIR numbers · **confirmed**
 

@@ -39,6 +39,7 @@ def main():
     ap.add_argument("--layout", default="state", choices=["options", "state"])
     ap.add_argument("--signature", default="title+lexical")
     ap.add_argument("--model", default="data/cache/laya")
+    ap.add_argument("--checkpoint", default="", help="a fine-tuned FrontierRankModel")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
@@ -48,7 +49,18 @@ def main():
         doc_ids = list(ds.docs)
         index = BM25Index.build(doc_ids, (ds.docs[d].full for d in doc_ids))
         rt = LayaRuntime(args.model, apply_temperature=False)
-        scorer = LayaScorer(rt, max_batch_slates=16)
+        if args.checkpoint:
+            import torch
+            from frontierrank.models.laya.heads import FrontierRankModel
+            from frontierrank.training.trainer import TrainedScorer
+            model = FrontierRankModel(rt.model, n_levels=4)
+            sd = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
+            model.load_state_dict(sd["model"], strict=True)
+            model.to(rt.device).eval()
+            scorer = TrainedScorer(model, rt, max_batch_slates=16)
+            run.log(f"loaded fine-tuned checkpoint: {args.checkpoint}")
+        else:
+            scorer = LayaScorer(rt, max_batch_slates=16)
         counter = scorer.token_counter()
         idf = {t: index.idf[j] for t, j in index.vocab.items()}
         packer = (OptionsPacker(token_counter=counter) if args.layout == "options"

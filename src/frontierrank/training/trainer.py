@@ -46,6 +46,10 @@ class TrainConfig:
     warmup_frac: float = 0.06
     max_grad_norm: float = 1.0
     gradient_checkpointing: bool = True
+    # Memory lever. 0 trains the whole encoder; on a 16 GB M4 that swaps.
+    # ModernBERT-large has 28 layers, so 14 halves the optimiser state.
+    freeze_lower_layers: int = 0
+    save_every: int = 0              # optimiser steps; 0 disables
     eval_every: int = 200            # optimiser steps
     n_levels: int = 4
     loss_weights: dict = field(default_factory=dict)
@@ -145,9 +149,16 @@ class Trainer:
         from torch.optim.lr_scheduler import OneCycleLR
 
         self.model.freeze_encoder(freeze_encoder)
+        if not freeze_encoder and self.cfg.freeze_lower_layers:
+            self.model.freeze_lower_layers(self.cfg.freeze_lower_layers)
         if self.cfg.gradient_checkpointing and not freeze_encoder:
             self.model.enable_gradient_checkpointing()
         self.log(f"\n[{name}] {self.model.trainable_summary()}")
+        mem = self.model.memory_estimate()
+        self.log(f"[{name}] estimated training memory: "
+                 f"{mem['total_GB_excl_activations']} GB excl. activations "
+                 f"(params {mem['params_GB']}, grads {mem['grads_GB']}, "
+                 f"optimiser {mem['optimizer_GB']})")
 
         opt = AdamW(self.model.param_groups(self.cfg.lr_encoder, self.cfg.lr_head),
                     weight_decay=self.cfg.weight_decay)
@@ -188,6 +199,11 @@ class Trainer:
                                             for k, v in sorted(running.items()))
                                  + f"  {time.time() - t0:.0f}s")
                         running = {}
+                    if self.cfg.save_every and step % self.cfg.save_every == 0:
+                        # a long run that only saves at the end loses
+                        # everything if it is killed, and on constrained
+                        # hardware it will be
+                        self.save(f"{self.cfg.out_dir}/step{step}.pt")
                     if eval_fn and step % self.cfg.eval_every == 0:
                         m = eval_fn()
                         self.history.append({"stage": name, "step": step, **m})

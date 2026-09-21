@@ -27,11 +27,12 @@ Dated narrative is in [LAB_NOTEBOOK.md](LAB_NOTEBOOK.md).
 | [x] | T1 — order-noise floor (replaces "marker noise") | `make phase0` | F3, F4 |
 | [x] | Signal vs starvation: OPTIONS vs STATE layout | `make phase0-signal` | F7 — STATE wins by +0.27 nDCG |
 | [x] | **Confirm F7 at full scale with bootstrap CIs** | `make phase0-signal-full` | F7 — +0.232 [+0.151,+0.312] vs BM25, n=50 |
-| [!] | T4 — does anchoring buy the cross-slate scale? | `make phase0-anchors` | F8 — underpowered (+0.010 ± 0.013) |
+| [x] | **T4 — does anchoring buy the cross-slate scale?** | `make phase0-anchors` | **F8 RESOLVED — yes, but only when composition varies** |
 | [x] | Templated pivots + probe: are they actually pivots? | `make anchor-probe` | F11 — only weakly ordered (0.33) |
 | [x] | Teacher-graded pivots: real text, continuous utilities | — | F11 — now the default |
-| [ ] | Re-run T4 with teacher pivots | `make phase0-anchors` | unblocks F8 |
+| [x] | Re-run T4 with teacher pivots (continuous utilities) | `make phase0-anchors` | F8 — leverage problem fixed, SE 3× tighter |
 | [ ] | T5 — does anchor *choice* swing results >1 nDCG point? | — | plan Part VIII test 5 |
+| [ ] | Confirm F8 on a second corpus before generalising | — | n=14, one corpus |
 
 **Why T4 is blocked, not failed:** trec-covid has three grades, so the anchor
 regression has three distinct x-values against a 0.38-nat noise floor. Jev's
@@ -42,8 +43,13 @@ That is also what production would use.
 
 ## Phase 1 — anchored scoring  ·  **next**
 
-> Gate: anchored beats naive by a large margin, and beats a pointwise rubric at
-> equal or lower pass count. If anchoring only matches the rubric, use the rubric.
+> Gate (as written in plan.md Part X): anchored beats naive by a large margin,
+> and beats a pointwise rubric at equal or lower pass count.
+>
+> **Corrected.** That gate contradicts plan.md's own Part VIII, which measures
+> stratified A=4 at naive 0.895 vs anchored 0.897 and concludes anchors buy the
+> *cross-query scale*, not within-query ranking. Measured here: +0.0004 — a tie,
+> matching the simulation's +0.002. The operative gate is falsification test 4.
 
 | | Task | Command | Gate / output |
 |---|---|---|---|
@@ -54,7 +60,10 @@ That is also what production would use.
 | [ ] | Close the trec-covid BM25 gap (−0.077) | `make check-first-stage` | F12 |
 | [x] | Slate dataset: anchors mirror inference, order randomised | — | difficulty mix hard/mixed/easy |
 | [ ] | Hard-negative mining across BM25 + dense + late-interaction | — | plan Part IX — "worth more than the loss" |
-| [~] | Trainer on MPS (grad checkpointing, accumulation) | `make train` | first full run in flight |
+| [x] | Trainer on MPS (grad checkpointing, accumulation) | `make train` | F13 — +0.152, beats BM25 by +0.079 |
+| [x] | Memory levers: layer freezing, periodic saves | — | F14 — 6.76 GB all-trainable swaps a 16 GB M4 |
+| [x] | **Falsification test 4 on the TUNED checkpoint** | `make phase0-anchors` | F8 — +0.181 ± 0.026 when c_S varies; null when it does not |
+| [x] | Anchor probe on the tuned checkpoint | `make anchor-probe` | F14 — rank corr 0.33 → 0.795, transferred |
 | [ ] | Curriculum: warm start → anchor-aware → domain | — | plan Part IX |
 | [ ] | **Re-run the whole Phase 0 battery on the tuned checkpoint** | `make phase0-all` | this is the real T4 test |
 
@@ -113,6 +122,20 @@ That is also what production would use.
 
 ---
 
+## Headline result so far
+
+**Anchoring is insurance, not an upgrade.** It makes the utility scale
+*invariant to slate composition* rather than better: `r_anchored` holds at
+~0.43–0.49 whether slates are uniform or heterogeneous, while `r_naive`
+collapses from ~0.48 to ~0.20. So under good slate construction anchors cost
+1.7–2.5× the forward passes for nothing, and they earn their slots exactly
+where composition cannot be controlled — streaming, merged pools after
+`widen_retrieval`, and multi-round re-scoring after `read_more` or escalation.
+
+**Default changed:** stratified slates *without* anchors (10 candidates/slate,
+10 passes per 100), anchors switched on only for the multi-round and merged-pool
+paths. That is a 1.7× local compute reduction against the plan's A=4 default.
+
 ## Decisions taken
 
 | Date | Decision | Why |
@@ -122,5 +145,7 @@ That is also what production would use.
 | 2026-09-21 | Jev via OpenRouter `/api/v1/systemone` | F5: works, reports real per-call cost |
 | 2026-09-21 | Train on M4/MPS | user's constraint; caps the "strong specialist" scale in plan Part IX |
 | 2026-09-21 | Teacher-graded pivots as default | F11: templates only weakly ordered; Jev gives continuous utilities on real text |
+| 2026-09-21 | Anchors OFF by default; ON for multi-round/merged pools | F8: +0.181 when composition varies, null when it does not |
+| 2026-09-21 | Phase 1 gate rewritten to falsification test 4 | plan Part X's gate contradicts its own Part VIII |
 | 2026-09-21 | Train on nfcorpus, evaluate on trec-covid | 323 training queries vs 50; tests transfer, not fit |
 | 2026-09-21 | Temperature OFF for Phase 0 | shipped map is fitted on the vendor's mix; rescaling changes what the anchor regression estimates |

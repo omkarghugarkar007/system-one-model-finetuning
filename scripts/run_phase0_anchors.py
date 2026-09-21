@@ -33,9 +33,14 @@ def main():
     ap.add_argument("--probes-per-grade", type=int, default=12)
     ap.add_argument("--anchor-counts", type=int, nargs="+", default=[1, 2, 3, 4, 6])
     ap.add_argument("--layout", default="options", choices=["options", "state"])
-    ap.add_argument("--anchor-spread", default="grade", choices=["grade", "latent"])
+    ap.add_argument("--anchor-spread", default="grade",
+                    choices=["grade", "latent", "teacher"])
     ap.add_argument("--signature", default="title+lexical")
     ap.add_argument("--model", default="data/cache/laya")
+    ap.add_argument("--checkpoint", default="", help="a fine-tuned FrontierRankModel")
+    ap.add_argument("--homogeneous-frac", type=float, default=0.0,
+                    help="fraction of slates drawn from a single grade; this is "
+                         "what makes c_S vary and gives anchors something to fix")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
@@ -49,7 +54,18 @@ def main():
         run.log(f"{index}")
 
         rt = LayaRuntime(args.model, apply_temperature=False)
-        scorer = LayaScorer(rt, max_batch_slates=16)
+        if args.checkpoint:
+            import torch
+            from frontierrank.models.laya.heads import FrontierRankModel
+            from frontierrank.training.trainer import TrainedScorer
+            model = FrontierRankModel(rt.model, n_levels=4)
+            sd = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
+            model.load_state_dict(sd["model"], strict=True)
+            model.to(rt.device).eval()
+            scorer = TrainedScorer(model, rt, max_batch_slates=16)
+            run.log(f"loaded fine-tuned checkpoint: {args.checkpoint}")
+        else:
+            scorer = LayaScorer(rt, max_batch_slates=16)
         counter = scorer.token_counter()
         idf = {t: index.idf[j] for t, j in index.vocab.items()}
         sigbuild = make_signature_builder(args.signature, counter=counter,
@@ -59,6 +75,25 @@ def main():
         info = packer.pack("q", ["x"] * args.slate_size).info
         per_cand = info.get("option_tokens", info.get("per_candidate_tokens"))
         run.log(f"layout={args.layout}, {per_cand} tokens/candidate at M={args.slate_size}")
+        run.log(f"slate composition: homogeneous_frac={args.homogeneous_frac} "
+                f"({'c_S varies -- anchors have something to fix' if args.homogeneous_frac > 0 else 'uniform draws -- c_S barely moves'})")
+
+        teacher = None
+        if args.anchor_spread == "teacher":
+            import os
+            import pathlib as _pl
+            from frontierrank.models.teachers import CachedTeacher, JevTeacher
+            if not os.environ.get("OPENROUTER_API_KEY"):
+                envf = _pl.Path(".env")
+                if envf.exists():
+                    for line in envf.read_text().splitlines():
+                        if line.startswith("OPENROUTER_API_KEY="):
+                            os.environ["OPENROUTER_API_KEY"] = \
+                                line.split("=", 1)[1].strip().strip("\"'")
+            teacher = CachedTeacher(JevTeacher(max_candidates=40),
+                                    "data/cache/teacher", backend_tag="jev-openrouter")
+            run.log("pivot utilities: Jev fractional expected grade (continuous)")
+            run.log("evaluation truth: qrel grades -- independent of the pivots")
 
         rows: dict[int, list[dict]] = {a: [] for a in args.anchor_counts}
         used = 0
@@ -88,25 +123,41 @@ def main():
                 [packer.pack(query, [sigs[i] for i in s]) for s in free.slates]))
             latent = fit.l_hat
 
+            # what the pivots claim to know. Teacher grades are fractional, so
+            # they give the affine fit real leverage where three qrel integers
+            # give it almost none -- the limit F8 kept hitting.
+            if args.anchor_spread == "teacher":
+                pivot_utility = np.asarray(
+                    teacher.grade(query, sigs).expected_grade, dtype=float)
+            else:
+                pivot_utility = grades
             prior = estimate_slope_prior(
-                [np.asarray(x) for x in [fit.y]], grades, free)
+                [np.asarray(x) for x in [fit.y]], pivot_utility, free)
             for A in args.anchor_counts:
                 if args.slate_size - A < 3:
                     continue
                 # spread over the KNOWN utility, not the latent: pivots picked
                 # for latent spread can all carry the same grade, leaving the
                 # regression with one distinct x-value and no leverage
-                anc = (spread_anchors(grades, A) if args.anchor_spread == "grade"
-                       else spread_anchors(latent, A))
-                design = anchored_slate_design(len(probes), anc, args.slate_size,
-                                               args.slates_per_query, rng)
+                if args.anchor_spread == "teacher":
+                    anc = spread_anchors(pivot_utility, A)
+                elif args.anchor_spread == "grade":
+                    anc = spread_anchors(grades, A)
+                else:
+                    anc = spread_anchors(latent, A)
+                design = anchored_slate_design(
+                    len(probes), anc, args.slate_size, args.slates_per_query, rng,
+                    grades=grades, homogeneous_frac=args.homogeneous_frac)
                 logps = scorer.score_many(
                     [packer.pack(query, [sigs[i] for i in s]) for s in design.slates])
                 # anchors carry their KNOWN utility; here that is the graded
                 # label, which is what a production pivot set actually has
-                r = cross_slate_scale(design, logps, anc, grades[anc], grades,
-                                      slope_prior=prior)
-                r["distinct_anchor_utilities"] = int(np.unique(grades[anc]).size)
+                # pivots carry their measured utility; the evaluation truth
+                # stays the qrel grade, so nothing is circular
+                r = cross_slate_scale(design, logps, anc, pivot_utility[anc],
+                                      grades, slope_prior=prior)
+                r["distinct_anchor_utilities"] = int(
+                    np.unique(np.round(pivot_utility[anc], 3)).size)
                 r["slope_prior"] = prior
                 r["A"] = A
                 rows[A].append(r)

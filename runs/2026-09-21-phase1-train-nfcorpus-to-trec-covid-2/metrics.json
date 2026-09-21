@@ -1,0 +1,65 @@
+{
+  "train_slate_stats": {
+    "slates": 2000,
+    "queries": 250,
+    "options_per_slate": 10,
+    "candidates_per_slate": 6,
+    "grade_mean": 0.257,
+    "grade_hist": {
+      "0": 9371,
+      "1": 2175,
+      "2": 454
+    },
+    "slates_with_a_positive": 0.227,
+    "difficulty": {
+      "hard": 0.276,
+      "easy": 0.2035,
+      "mixed": 0.5205
+    }
+  },
+  "history": [
+    {
+      "stage": "base",
+      "step": 0,
+      "ndcg_anchored": 0.4551,
+      "ndcg_naive": 0.5173,
+      "ndcg_bm25": 0.5278,
+      "n_queries": 15
+    },
+    {
+      "stage": "warmup",
+      "step": 60,
+      "ndcg_anchored": 0.5136,
+      "ndcg_naive": 0.5241,
+      "ndcg_bm25": 0.5278,
+      "n_queries": 15
+    },
+    {
+      "stage": "full",
+      "step": 60,
+      "ndcg_anchored": 0.6004,
+      "ndcg_naive": 0.5979,
+      "ndcg_bm25": 0.5278,
+      "n_queries": 15
+    },
+    {
+      "stage": "full",
+      "step": 120,
+      "ndcg_anchored": 0.6068,
+      "ndcg_naive": 0.6064,
+      "ndcg_bm25": 0.5278,
+      "n_queries": 15
+    },
+    {
+      "stage": "final",
+      "step": -1,
+      "ndcg_anchored": 0.6068,
+      "ndcg_naive": 0.6064,
+      "ndcg_bm25": 0.5278,
+      "n_queries": 15
+    }
+  ],
+  "checkpoint": "runs/2026-09-21-phase1-train-nfcorpus-to-trec-covid-2/checkpoint.pt",
+  "delta_from_finetuning": 0.1517,
+  "anchored_minus_naive": 0.00039999999999995595
+}

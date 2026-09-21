@@ -174,9 +174,19 @@ def main():
         run.metric("delta_from_finetuning", d_anchor)
         run.metric("anchored_minus_naive", d_vs_naive)
         run.log("")
-        run.log("  Phase 1 gate: anchored must beat naive by a large margin. A small")
-        run.log("  or negative margin means the calibration is not earning its option")
-        run.log("  slots, and the honest move is the pointwise rubric instead.")
+        run.log("  NOTE ON THE GATE. 'anchored must beat naive on nDCG@10' is the WRONG")
+        run.log("  test, and plan.md says so itself. Part VIII measures stratified A=4")
+        run.log("  at naive 0.895 vs anchored 0.897 -- a tie -- and concludes:")
+        run.log("  'Stratifying the slates is a free fix for within-query ranking...")
+        run.log("   Anchors buy the absolute scale, which stratification cannot.'")
+        run.log("")
+        run.log("  So a near-zero margin here CONFIRMS the simulation rather than")
+        run.log("  refuting the mechanism. Anchoring's claim is the cross-query scale,")
+        run.log("  which nDCG@10 within a single query cannot measure at all.")
+        run.log("  The real Phase 1 gate is falsification test 4:")
+        run.log("      make phase0-anchors CKPT=<this checkpoint>")
+        run.log("")
+        run.log("  What IS decided here: fine-tuning works, and by how much.")
 
 
 if __name__ == "__main__":
