@@ -1,0 +1,37 @@
+{
+  "name": "phase1-train",
+  "status": "ok",
+  "git_commit": "54f8e8b-dirty",
+  "started": 1789987396.110786,
+  "wall_seconds": 98.9,
+  "config": {
+    "train": "nfcorpus",
+    "eval": "trec-covid",
+    "train_queries": 6,
+    "eval_queries": 3,
+    "slates_per_query": 4,
+    "depth": 100,
+    "max_options": 10,
+    "n_anchors": 4,
+    "layout": "state",
+    "signature": "title+lexical",
+    "anchors": "teacher",
+    "warmup_epochs": 1,
+    "full_epochs": 1,
+    "batch_slates": 4,
+    "grad_accum": 2,
+    "lr_encoder": 1e-05,
+    "lr_head": 0.0001,
+    "eval_every": 3,
+    "model": "data/cache/laya",
+    "seed": 0
+  },
+  "env": {
+    "python": "3.12.13",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "numpy": "2.5.3",
+    "torch": "2.14.0",
+    "mps": true,
+    "cuda": false
+  }
+}

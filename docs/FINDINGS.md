@@ -95,7 +95,7 @@ because of *which* others share its slate — explains 0.7% of what is left.
 
 Run: `runs/2026-09-21-phase0-trec-covid-options/`.
 
-### F7 — The base checkpoint has signal; the OPTIONS layout throws it away · **confirmed**
+### F7 — The base checkpoint has signal; the OPTIONS layout throws it away · **confirmed (n=50, paired CIs)**
 
 The first anchor sweep found anchoring bought nothing, with a naive
 score/label correlation of only 0.14. Two explanations: no signal in the base
@@ -103,30 +103,37 @@ weights (which Laya's own card predicts — "a fast base to specialise, not a
 zero-shot decision engine"), or the 16-token budget starving it. Distinguished
 by varying the evidence budget.
 
-trec-covid, 8 queries, base checkpoint, no fine-tuning, no temperature:
+trec-covid, **all 50 queries**, base checkpoint, no fine-tuning, no temperature.
+Paired bootstrap over queries, 10k resamples:
 
-| layout | signature | tok/cand | sig recall | corr(l, grade) | nDCG@10 |
-|---|---|---|---|---|---|
-| options | title | 16 | 0.345 | 0.240 | 0.539 |
-| options | lexical | 16 | 0.253 | 0.033 | 0.494 |
-| options | title+lexical | 16 | 0.273 | 0.200 | 0.490 |
-| state | title | 37 | 0.428 | 0.024 | 0.409 |
-| state | lexical | 37 | 0.477 | 0.384 | 0.678 |
-| **state** | **title+lexical** | **37** | **0.544** | **0.484** | **0.761** |
-| — | BM25 floor | — | — | — | 0.455 |
+| layout | signature | tok/cand | sig recall | corr(l, grade) | nDCG@10 | vs BM25 | 95% CI |
+|---|---|---|---|---|---|---|---|
+| **state** | **title+lexical** | **37** | **0.542** | **0.545** | **0.807** | **+0.232** | **[+0.151, +0.312]** |
+| state | lexical | 37 | 0.498 | 0.426 | 0.706 | +0.131 | [+0.042, +0.221] |
+| state | title | 37 | 0.424 | 0.366 | 0.693 | +0.118 | [+0.044, +0.194] |
+| options | title | 16 | 0.334 | 0.247 | 0.585 | +0.010 | [−0.064, +0.082] |
+| options | title+lexical | 16 | 0.251 | 0.141 | 0.541 | −0.034 | [−0.117, +0.049] |
+| options | lexical | 16 | 0.270 | −0.020 | 0.461 | −0.114 | [−0.194, −0.033] |
+| — | BM25 floor | — | — | — | 0.575 | — | — |
 
-Correlation moves 0.024 → 0.484 across evidence budgets. The bottleneck was
+**Every STATE config beats BM25 with a CI excluding zero. No OPTIONS config
+does.** The winner also beats every other config with CIs excluding zero.
+Correlation spans −0.020 → 0.545 across evidence budgets. The bottleneck was
 the slicer and the layout, not the weights.
 
 **Read with care.** These nDCG@10 values are computed over a *balanced probe
-set* of ~36 candidates per query drawn across all three grades, not over a
-realistic top-100 pool. They are not BEIR numbers and must not be compared to
-published ones. The BM25 column is computed identically, so the comparison
-within the table is fair. n = 8 queries; error bars are wide and untested.
+set* of ~36 candidates per query drawn across all three grades, not a realistic
+top-100 pool. They are not BEIR numbers and must not be compared to published
+ones. The BM25 column is computed identically, so comparisons within the table
+hold.
 
 This is the largest design consequence found so far: `plan.md`'s architecture
-implicitly assumes the OPTIONS layout, and the STATE layout beats it by
-+0.27 nDCG@10 on the base checkpoint.
+implicitly assumes the OPTIONS layout, and that layout does not beat its own
+first stage. **STATE is now the project default** (`docs/ROADMAP.md` decisions).
+
+The n=8 pilot reported +0.27 against a BM25 floor of 0.455; at n=50 the floor
+rises to 0.575 and the gap settles at +0.232 [+0.151, +0.312]. The direction
+and significance held; the magnitude moved, which is why the pilot was rerun.
 
 ### F8 — Does anchoring buy the cross-slate scale? · **open (underpowered)**
 
@@ -178,9 +185,68 @@ Score returns a fractional expected grade (2.85, not 3), so teacher-graded
 pivots have real leverage where qrel grades have almost none — and that is what
 production would use anyway. TREC DL's 4-level scale would also help.
 
+### F11 — Templated pivots are only weakly ordered by the base model · **confirmed**
+
+`training.anchors` proposed pivots whose grade is known by construction, since
+no fixed document has a fixed relevance to every query. Probed on trec-covid,
+20 queries, 120 slates:
+
+| pivot | designed utility | mean log p | mean rank (of 4) |
+|---|---|---|---|
+| off_topic | −3.0 | −3.64 | 3.73 |
+| topical_nonanswer | −1.0 | **−1.89** | **1.55** |
+| partial | +1.0 | −2.51 | 2.34 |
+| direct_answer | +3.0 | −2.39 | 2.38 |
+
+Rank correlation with the designed order **0.33**; exact order in **2.5%** of
+slates. Only the grade-0 pivot lands where intended.
+
+Two causes, and only one is the model's fault. The base checkpoint responds to
+topical overlap rather than to answering — consistent with F7, where its signal
+is real but modest. But the grade-3 template is also badly designed: it
+*claims* to answer the query without containing an answer, and a relevance
+model is correct not to reward a self-referential claim. Synthetic text cannot
+carry real relevance at the top of the scale, because a passage that answers a
+question has to contain the answer, and only the corpus has that.
+
+**Resolution: teacher-graded pivots.** Real documents, graded by Jev, whose
+Score returns a *fractional* expected grade. Continuous utilities (fixing F8's
+leverage problem), real relevance, one cached call per query at ~$0.0003, and
+the scale is fixed corpus-wide even though the pivot documents differ per
+query. Implemented as `AnchorPool(strategy="teacher")` and now the default.
+
+The templated set is kept as an ablation, and `anchor_affine_loss` gives a
+falsifiable prediction: if training for anchor alignment works, this rank
+correlation should rise from 0.33 toward 1.0 on the tuned checkpoint.
+
 ---
 
 ## Measured engineering facts
+
+### F12 — The first stage is validated against published BEIR numbers · **confirmed**
+
+The plan's own thesis is that the first stage moves the metric more than the
+reranker does, so a gain measured on a broken floor is not a gain.
+`scripts/check_first_stage.py` checks BM25 against Thakur et al.:
+
+| dataset | ours | published | delta |
+|---|---|---|---|
+| nfcorpus | 0.3235 | 0.325 | −0.002 |
+| scifact | 0.6759 | 0.665 | +0.011 |
+| trec-covid | 0.5794 | 0.656 | **−0.077** |
+
+Adding Porter stemming (Anserini's default, and BEIR's published numbers are
+Anserini's) moved nfcorpus +0.016 and trec-covid +0.016. Two of three now match
+to within 0.011.
+
+**trec-covid remains 0.077 low and this is not yet explained.** Since it is the
+primary evaluation corpus, the consequence must be stated: a floor that is too
+low makes every reranking gain measured against it look slightly better than it
+should. The gap is constant across rows, so *comparisons between rerankers*
+remain valid; *absolute* "beats BM25 by X" claims on trec-covid carry this
+caveat until it is closed.
+
+
 
 ### F9 — Laya on an M4 · **confirmed**
 

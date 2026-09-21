@@ -134,6 +134,11 @@ class AnchorPool:
     strategy: str = "templated"
     templates: list = field(default_factory=lambda: list(DEFAULT_TEMPLATES))
     held_out: set = field(default_factory=set)
+    # only for strategy="teacher"
+    teacher: object = None
+    index: object = None
+    signature_builder: object = None
+    _cache: dict = field(default_factory=dict)
 
     def for_query(self, query: str, ds=None, qid: str = "",
                   n: int = 4, rng=None) -> list[Anchor]:
@@ -142,6 +147,18 @@ class AnchorPool:
         if self.strategy == "judged":
             anchors = judged_anchors(ds, qid, n, rng=rng)
             self.held_out.update(a.doc_id for a in anchors)
+            return anchors
+        if self.strategy == "teacher":
+            # one teacher call per query, cached: the pivots for a query do not
+            # change between slates or between epochs
+            if qid in self._cache:
+                return self._cache[qid]
+            if self.teacher is None or self.index is None:
+                raise ValueError("teacher strategy needs `teacher` and `index`")
+            anchors = teacher_anchors(ds, self.index, self.teacher, qid, n,
+                                      signature_builder=self.signature_builder)
+            self.held_out.update(a.doc_id for a in anchors)
+            self._cache[qid] = anchors
             return anchors
         raise ValueError(f"unknown anchor strategy {self.strategy!r}")
 
@@ -152,3 +169,75 @@ class AnchorPool:
         """Utility range the pivots span. The regression's leverage."""
         u = self.utilities(n)
         return float(np.ptp(u)) if u.size else 0.0
+
+
+# ==========================================================================
+# Teacher-graded pivots: real text, continuous utilities
+# ==========================================================================
+#
+# `run_anchor_probe.py` on the base checkpoint found the templated pivots only
+# weakly ordered (rank correlation 0.33, exact order 2.5%), and the diagnosis
+# is not purely "the model is bad". The grade-3 template *claims* to answer the
+# query without containing an answer, and a relevance model is right not to
+# reward a self-referential claim. Synthetic text cannot carry real relevance
+# at the top of the scale: a passage that answers a question has to contain the
+# answer, and only the corpus has that.
+#
+# So the top of the pivot scale must be real text, which means its utility has
+# to be measured rather than declared. Jev's Score returns a FRACTIONAL
+# expected grade (2.85, not 3), which is strictly better than a qrel label for
+# this purpose:
+#
+#   * continuous, so pivots can be placed anywhere on the scale rather than
+#     landing on three integers -- the leverage problem F8 identified;
+#   * on one rubric, so the scale is fixed corpus-wide even though the pivot
+#     *documents* differ per query, which is what "one global scale" actually
+#     requires;
+#   * already paid for, since the escalation path calls the teacher anyway.
+#
+# One call per query, cached, at roughly $0.0002. For 250 training queries that
+# is about five cents.
+
+def teacher_anchors(ds, index, teacher, qid: str, n: int = 4,
+                    pool_depth: int = 30, signature_builder=None,
+                    tokens_per_candidate: int = 200,
+                    rubric=None) -> list[Anchor]:
+    """Pivots drawn from the corpus and graded by the teacher.
+
+    Picks `n` documents whose teacher grades are as evenly spread as possible,
+    because the affine fit's leverage is the spread of its pivots and clustered
+    pivots give an ill-conditioned slope no regularisation repairs.
+
+    Utilities are mapped from the 0-3 rubric onto roughly [-3, +3] so they sit
+    in the same range as the templated set, keeping the two strategies
+    comparable in an ablation.
+    """
+    from ..models.protocols import RUBRIC_4LEVEL
+
+    query = ds.queries[qid]
+    ranked, _ = index.search(query, pool_depth)
+    if not ranked:
+        return []
+    if signature_builder is not None:
+        texts = [signature_builder.build(query, ds.docs[d].title,
+                                         ds.docs[d].text, tokens_per_candidate)
+                 for d in ranked]
+    else:
+        texts = [ds.docs[d].full[: tokens_per_candidate * 4] for d in ranked]
+
+    verdict = teacher.grade(query, texts, rubric or RUBRIC_4LEVEL)
+    grades = np.asarray(verdict.expected_grade, dtype=float)
+
+    # evenly spread over the observed grade range
+    targets = np.linspace(grades.min(), grades.max(), n)
+    picks, used = [], set()
+    for t in targets:
+        for j in np.argsort(np.abs(grades - t)):
+            if int(j) not in used:
+                used.add(int(j))
+                picks.append(int(j))
+                break
+
+    return [Anchor(text=texts[j], utility=float(grades[j]) * 2.0 - 3.0,
+                   grade=int(round(grades[j])), doc_id=ranked[j])
+            for j in sorted(picks, key=lambda j: grades[j])]

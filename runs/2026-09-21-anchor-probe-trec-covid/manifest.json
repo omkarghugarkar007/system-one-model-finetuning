@@ -1,0 +1,26 @@
+{
+  "name": "anchor-probe",
+  "status": "ok",
+  "git_commit": "54f8e8b-dirty",
+  "started": 1789987246.829608,
+  "wall_seconds": 52.6,
+  "config": {
+    "dataset": "trec-covid",
+    "queries": 20,
+    "depth": 100,
+    "candidates_per_slate": 6,
+    "slates_per_query": 6,
+    "layout": "state",
+    "signature": "title+lexical",
+    "model": "data/cache/laya",
+    "seed": 0
+  },
+  "env": {
+    "python": "3.12.13",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "numpy": "2.5.3",
+    "torch": "2.14.0",
+    "mps": true,
+    "cuda": false
+  }
+}

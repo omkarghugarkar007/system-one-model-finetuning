@@ -231,31 +231,53 @@ def make_eval_fn(scorer, ds, index, sigbuilder, packer, anchor_pool, query_ids,
 
     Reports anchored *and* naive so the ablation that matters -- does the
     calibration earn its slots? -- is visible on every eval, not just at the end.
+
+    The pools, signatures and pivots are resolved ONCE and frozen. Resolving
+    them per call is a trap I walked into: teacher-graded pivots are added to
+    `held_out` as they are chosen, the pool filter then removes them, and the
+    candidate set silently shrinks between evaluations. The BM25 floor moved
+    from 0.2798 to 0.3095 between two evals of the same corpus, which makes
+    every before/after comparison meaningless -- including the one this
+    function exists to report.
     """
     from ..core.scoring import AnchoredScorer
 
+    prepared = []
+    for qid in query_ids:
+        query = ds.queries[qid]
+        # pivots first, so the pool filter sees the final held-out set
+        anchors = anchor_pool.for_query(query, ds, qid, n_anchors)
+        held = set(anchor_pool.held_out) | {a.doc_id for a in anchors}
+        ranked, _ = index.search(query, depth)
+        ranked = [d for d in ranked if d not in held]
+        if len(ranked) < max_options:
+            continue
+        prepared.append((
+            query,
+            np.array([ds.grade(qid, d) for d in ranked], dtype=float),
+            [sigbuilder.build(query, ds.docs[d].title, ds.docs[d].text,
+                              tokens_per_candidate) for d in ranked],
+            anchors))
+
+    # computed once: the first stage does not change when the student does
+    bm25_ndcg = float(np.mean([ndcg_at_k(g, g, k) for _, g, _, _ in prepared])) \
+        if prepared else 0.0
+
     def _eval():
-        nd_a, nd_n, nd_bm = [], [], []
-        for qid in query_ids:
-            query = ds.queries[qid]
-            ranked, _ = index.search(query, depth)
-            ranked = [d for d in ranked if d not in anchor_pool.held_out]
-            if len(ranked) < max_options:
-                continue
-            grades = np.array([ds.grade(qid, d) for d in ranked], dtype=float)
-            sigs = [sigbuilder.build(query, ds.docs[d].title, ds.docs[d].text,
-                                     tokens_per_candidate) for d in ranked]
-            anchors = anchor_pool.for_query(query, ds, qid, n_anchors)
+        nd_a, nd_n = [], []
+        for query, grades, sigs, anchors in prepared:
             pool = AnchoredScorer(scorer, anchors, packer=packer,
                                   max_options=max_options, n_anchors=n_anchors
                                   ).score(query, sigs,
                                           rng=np.random.default_rng(seed))
             nd_a.append(ndcg_at_k(grades[pool.order], grades, k))
             nd_n.append(ndcg_at_k(grades[pool.naive_order], grades, k))
-            nd_bm.append(ndcg_at_k(grades, grades, k))
+        if not nd_a:
+            return {"ndcg_anchored": 0.0, "ndcg_naive": 0.0,
+                    "ndcg_bm25": bm25_ndcg, "n_queries": 0}
         return {"ndcg_anchored": round(float(np.mean(nd_a)), 4),
                 "ndcg_naive": round(float(np.mean(nd_n)), 4),
-                "ndcg_bm25": round(float(np.mean(nd_bm)), 4),
+                "ndcg_bm25": round(bm25_ndcg, 4),
                 "n_queries": len(nd_a)}
 
     return _eval

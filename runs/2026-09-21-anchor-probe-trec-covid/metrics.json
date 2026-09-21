@@ -1,0 +1,9 @@
+{
+  "rank_corr": 0.3283333333333333,
+  "exact_order_frac": 0.025,
+  "pivot_std_across_slates": 0.8046642531947099,
+  "pivot_spread_within_slate": 2.196135047574838,
+  "candidates_inside_range": 0.7458333333333333,
+  "n_slates": 120,
+  "verdict": "weak"
+}

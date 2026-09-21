@@ -1,0 +1,35 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+M=10 (6 candidates + 4 pivots), 37 tokens/candidate, layout=state
+
+1. ORDER -- do the pivots rank as designed?
+===========================================
+               pivot  designed u  mean log p     std  mean rank
+----------------------------------------------------------------
+           off_topic        -3.0     -3.6377  0.7970       3.73
+   topical_nonanswer        -1.0     -1.8922  0.7517       1.55
+             partial        +1.0     -2.5070  0.8403       2.34
+       direct_answer        +3.0     -2.3912  0.8297       2.38
+
+  rank correlation with the designed order : 0.3283
+  slates with the exact designed order     : 2.5%
+
+2. STABILITY -- is a pivot a fixed reference?
+=============================================
+  pivot log p std across slates : 0.8047 nats
+  pivot spread within a slate   : 2.1961 nats
+
+3. SPAN -- do real candidates fall inside the pivot range?
+==========================================================
+  candidates inside the pivot range : 74.6%
+  candidate log p range  : [-7.229, -0.039]
+  pivot log p range      : [-7.032, -0.208]
+
+VERDICT
+=======
+  WEAK: the order is right on average but noisy per slate.
+  Usable with more pivots; re-check after fine-tuning.
+
+  throughput: {'forwards': 120, 'slates': 120, 'total_ms': 20461.1, 'ms_per_slate': 170.51, 'slates_per_s': 5.86, 'device': 'mps'}

@@ -1,0 +1,37 @@
+
+Setup
+=====
+Laya on mps; {'trainable_M': 422.3, 'total_M': 422.3, 'frozen_frac': 0.0}
+layout=state, M=10 (6 candidates + 4 pivots), 37 tokens/candidate
+train Dataset(nfcorpus/test: 3,633 docs, 323 queries, 12,334 judgements, grades 0-2)
+eval  Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+anchors: teacher-graded (Jev), continuous utilities, cached
+train slates: {'slates': 24, 'queries': 6, 'options_per_slate': 10, 'candidates_per_slate': 6, 'grade_mean': 0.167, 'grade_hist': {0: 122, 1: 20, 2: 2}, 'slates_with_a_positive': 0.083, 'difficulty': {'mixed': 0.5416666666666666, 'hard': 0.2916666666666667, 'easy': 0.16666666666666666}}
+
+Training
+========
+[base] before training: {'ndcg_anchored': 0.2366, 'ndcg_naive': 0.2277, 'ndcg_bm25': 0.2798, 'n_queries': 3}
+
+[warmup] {'trainable_M': 27.6, 'total_M': 422.3, 'frozen_frac': 0.935}
+  [warmup] eval @ 3: {'ndcg_anchored': 0.3602, 'ndcg_naive': 0.2665, 'ndcg_bm25': 0.3095, 'n_queries': 3}
+
+[full] {'trainable_M': 422.3, 'total_M': 422.3, 'frozen_frac': 0.0}
+  [full] eval @ 3: {'ndcg_anchored': 0.388, 'ndcg_naive': 0.278, 'ndcg_bm25': 0.3095, 'n_queries': 3}
+[final] {'ndcg_anchored': 0.388, 'ndcg_naive': 0.278, 'ndcg_bm25': 0.3095, 'n_queries': 3}
+
+Result
+======
+   stage   step   anchored    naive     BM25
+----------------------------------------------
+    base      0     0.2366   0.2277   0.2798
+  warmup      3     0.3602   0.2665   0.3095
+    full      3     0.3880   0.2780   0.3095
+   final     -1     0.3880   0.2780   0.3095
+
+  fine-tuning moved anchored nDCG@10 by +0.1514
+  anchored vs naive at the end          +0.1100
+  BM25 floor                            0.3095
+
+  Phase 1 gate: anchored must beat naive by a large margin. A small
+  or negative margin means the calibration is not earning its option
+  slots, and the honest move is the pointwise rubric instead.

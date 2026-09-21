@@ -42,7 +42,8 @@ def main():
     ap.add_argument("--n-anchors", type=int, default=4)
     ap.add_argument("--layout", default="state", choices=["options", "state"])
     ap.add_argument("--signature", default="title+lexical")
-    ap.add_argument("--anchors", default="templated", choices=["templated", "judged"])
+    ap.add_argument("--anchors", default="teacher",
+                    choices=["templated", "judged", "teacher"])
     ap.add_argument("--warmup-epochs", type=int, default=1)
     ap.add_argument("--full-epochs", type=int, default=2)
     ap.add_argument("--batch-slates", type=int, default=4)
@@ -91,9 +92,26 @@ def main():
         run.log(f"eval  {ev}")
 
         anchor_pool = AnchorPool(strategy=args.anchors)
-        run.log(f"anchors: {args.anchors}, utilities "
-                f"{anchor_pool.utilities(args.n_anchors)}, "
-                f"spread {anchor_pool.spread(args.n_anchors)}")
+        if args.anchors == "teacher":
+            from frontierrank.models.teachers import CachedTeacher, JevTeacher
+            import os, pathlib as _pl
+            if not os.environ.get("OPENROUTER_API_KEY"):
+                envf = _pl.Path(".env")
+                if envf.exists():
+                    for line in envf.read_text().splitlines():
+                        if line.startswith("OPENROUTER_API_KEY="):
+                            os.environ["OPENROUTER_API_KEY"] = \
+                                line.split("=", 1)[1].strip().strip("\"'")
+            jev = CachedTeacher(JevTeacher(max_candidates=30),
+                                "data/cache/teacher", backend_tag="jev-openrouter")
+            anchor_pool.teacher = jev
+            anchor_pool.index = tr_index
+            anchor_pool.signature_builder = tr_sig
+            run.log("anchors: teacher-graded (Jev), continuous utilities, cached")
+        else:
+            run.log(f"anchors: {args.anchors}, utilities "
+                    f"{anchor_pool.utilities(args.n_anchors)}, "
+                    f"spread {anchor_pool.spread(args.n_anchors)}")
 
         # -------------------------------------------------------------- slates
         spec = SlateSpec(max_options=args.max_options, n_anchors=args.n_anchors,
@@ -111,8 +129,15 @@ def main():
             return collate_slates(batch, rt, packer)
 
         eval_qids = ev.query_ids[: args.eval_queries]
+        eval_pool = anchor_pool
+        if args.anchors == "teacher":
+            # pivots are drawn from the corpus being scored, so eval needs its
+            # own pool over the eval index -- sharing one would put training
+            # documents into the evaluation slates
+            eval_pool = AnchorPool(strategy="teacher", teacher=anchor_pool.teacher,
+                                   index=ev_index, signature_builder=ev_sig)
         eval_fn = make_eval_fn(TrainedScorer(model, rt), ev, ev_index, ev_sig,
-                               packer, anchor_pool, eval_qids, depth=args.depth,
+                               packer, eval_pool, eval_qids, depth=args.depth,
                                max_options=args.max_options,
                                n_anchors=args.n_anchors,
                                tokens_per_candidate=per_cand, seed=args.seed)

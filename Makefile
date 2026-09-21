@@ -46,3 +46,6 @@ anchor-probe:    ## are the templated pivots actually pivots?
 
 train:           ## Phase 1: fine-tune on nfcorpus, evaluate on trec-covid
 	$(PY) scripts/run_phase1_train.py --train nfcorpus --eval trec-covid
+
+check-first-stage: ## validate BM25 against published BEIR numbers
+	$(PY) scripts/check_first_stage.py

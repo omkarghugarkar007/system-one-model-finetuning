@@ -1,0 +1,57 @@
+{
+  "train_slate_stats": {
+    "slates": 24,
+    "queries": 6,
+    "options_per_slate": 10,
+    "candidates_per_slate": 6,
+    "grade_mean": 0.167,
+    "grade_hist": {
+      "0": 122,
+      "1": 20,
+      "2": 2
+    },
+    "slates_with_a_positive": 0.083,
+    "difficulty": {
+      "mixed": 0.5416666666666666,
+      "hard": 0.2916666666666667,
+      "easy": 0.16666666666666666
+    }
+  },
+  "history": [
+    {
+      "stage": "base",
+      "step": 0,
+      "ndcg_anchored": 0.2366,
+      "ndcg_naive": 0.2277,
+      "ndcg_bm25": 0.2798,
+      "n_queries": 3
+    },
+    {
+      "stage": "warmup",
+      "step": 3,
+      "ndcg_anchored": 0.3602,
+      "ndcg_naive": 0.2665,
+      "ndcg_bm25": 0.3095,
+      "n_queries": 3
+    },
+    {
+      "stage": "full",
+      "step": 3,
+      "ndcg_anchored": 0.388,
+      "ndcg_naive": 0.278,
+      "ndcg_bm25": 0.3095,
+      "n_queries": 3
+    },
+    {
+      "stage": "final",
+      "step": -1,
+      "ndcg_anchored": 0.388,
+      "ndcg_naive": 0.278,
+      "ndcg_bm25": 0.3095,
+      "n_queries": 3
+    }
+  ],
+  "checkpoint": "runs/2026-09-21-phase1-train-nfcorpus-to-trec-covid/checkpoint.pt",
+  "delta_from_finetuning": 0.1514,
+  "anchored_minus_naive": 0.10999999999999999
+}
