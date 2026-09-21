@@ -1,0 +1,60 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+grades: {0: 41663, 1: 10456, 2: 14217}
+BM25Index(171,332 docs, 206,995 terms, k1=0.9, b=0.4, avgdl=121.0)  built in 6.7s
+Laya on mps, temperature OFF (Phase 0 measures raw logits)
+layout=options, signature=title+lexical, 16 tokens per candidate at M=10
+  [1/8] 1                    probes=30 rmse=0.3450 r2=0.8256 c_range=1.370
+  [2/8] 10                   probes=30 rmse=0.2890 r2=0.7834 c_range=0.466
+  [3/8] 11                   probes=22 rmse=0.4274 r2=0.8136 c_range=1.532
+  [4/8] 12                   probes=28 rmse=0.3642 r2=0.8344 c_range=1.524
+  [5/8] 13                   probes=30 rmse=0.3310 r2=0.8247 c_range=1.337
+  [6/8] 14                   probes=30 rmse=0.2662 r2=0.6841 c_range=0.374
+  [7/8] 15                   probes=15 rmse=0.2604 r2=0.8361 c_range=0.676
+  [8/8] 16                   probes=30 rmse=0.2872 r2=0.7859 c_range=0.863
+
+T0/T1 -- measurement floor
+==========================
+  order-permutation std per candidate : 0.3816 nats
+  argmax changed by reordering       : 32.8%
+  (Laya is deterministic, so this IS the noise floor --
+   the plan's 'marker noise' is not a real quantity.)
+
+T2 -- additive fit  log p_iS = l_i - c_S   [THE GATE]
+=====================================================
+  residual RMSE      : 0.3213 nats
+  R^2                : 0.7985
+  c_S range (signal) : 1.0175 nats
+  residual / floor   : 0.84x
+
+T3 -- interaction (is the leftover systematic?)
+===============================================
+  R^2 of residual on grade x slate-mean : 0.0074
+  interaction coefficient               : +0.0975
+
+T4 -- anchor recovery of the offset
+===================================
+  usable slates/query : 10
+  corr(recovered c_S, fitted c_S) : 0.1040
+  offset RMSE         : 0.5077
+  anchor fit residual : 0.1744
+
+Evidence slicer
+===============
+  signature recall (query terms kept) : 0.272
+  budget report: {'slates': 384, 'option_tokens_mean': 14.34, 'option_tokens_min': 8, 'option_text_wanted_mean': 14.34, 'option_shrink_fired': 0.0, 'instruction_tokens_mean': 10.0, 'state_tokens_mean': 11.12, 'state_truncated_frac': 0.0, 'total_tokens_mean': 178.5}
+  throughput  : {'forwards': 32, 'slates': 384, 'total_ms': 22877.5, 'ms_per_slate': 59.58, 'slates_per_s': 16.79, 'device': 'mps'}
+
+GATE
+====
+  design power (c_S range / noise floor) : 2.67x
+  PASS: residual is 0.84x the measurement floor against 2.67x of signal.
+
+  PASS         -> residual at the floor: c_S is a per-slate shift,
+                  and anchoring recovers what the theory says.
+  MARGINAL     -> an affine map absorbs most of it; read T3 for shape.
+  FAIL         -> composition-dependent beyond an additive term;
+                  Part XI's first named risk has fired.
+  INCONCLUSIVE -> the design lacked contrast. Not evidence either way.

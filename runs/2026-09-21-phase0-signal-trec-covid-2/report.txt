@@ -1,0 +1,29 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+BM25Index(171,332 docs, 206,995 terms, k1=0.9, b=0.4, avgdl=121.0)
+Laya on mps, base checkpoint, temperature OFF
+8 usable queries
+
+Signal by evidence budget
+=========================
+  layout      signature  tok/cand  sig recall  corr(l,grade)   nDCG@10     BM25
+--------------------------------------------------------------------------------
+ options          title        16       0.345         0.2404    0.5392   0.4546
+ options        lexical        16       0.253         0.0329    0.4941   0.4546
+ options  title+lexical        16       0.273         0.2003    0.4901   0.4546
+   state          title        37       0.428         0.0239    0.4088   0.4546
+   state        lexical        37       0.477         0.3837    0.6783   0.4546
+   state  title+lexical        37       0.544         0.4843    0.7614   0.4546
+
+Read
+====
+  best  state/title+lexical    corr=0.4843 @ 37 tok/cand
+  worst state/title            corr=0.0239 @ 37 tok/cand
+  spread across evidence budgets: 0.4604
+
+  (b) STARVED: the budget moved the signal materially. The
+      bottleneck is the slicer and the layout, not the weights.
+
+  throughput: {'forwards': 96, 'slates': 1152, 'total_ms': 122821.2, 'ms_per_slate': 106.62, 'slates_per_s': 9.38, 'device': 'mps'}

@@ -1,0 +1,2 @@
+[console_scripts]
+fr = frontierrank.cli:main

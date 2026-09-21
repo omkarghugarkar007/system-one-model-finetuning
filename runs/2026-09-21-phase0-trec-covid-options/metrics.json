@@ -1,0 +1,33 @@
+{
+  "order_noise_floor": 0.3815761342963124,
+  "additive_rmse": 0.32128788946183795,
+  "additive_r2": 0.7984916895217328,
+  "c_range": 1.0174670553708896,
+  "residual_over_floor": 0.8420020556430878,
+  "interaction_r2": 0.007440833900728486,
+  "anchor_offset_corr": 0.10398333242609192,
+  "anchor_offset_rmse": 0.5076513507896672,
+  "signature_recall": 0.2721317829457365,
+  "n_queries_used": 8,
+  "throughput": {
+    "forwards": 32,
+    "slates": 384,
+    "total_ms": 22877.5,
+    "ms_per_slate": 59.58,
+    "slates_per_s": 16.79,
+    "device": "mps"
+  },
+  "budget": {
+    "slates": 384,
+    "option_tokens_mean": 14.34,
+    "option_tokens_min": 8,
+    "option_text_wanted_mean": 14.34,
+    "option_shrink_fired": 0.0,
+    "instruction_tokens_mean": 10.0,
+    "state_tokens_mean": 11.12,
+    "state_truncated_frac": 0.0,
+    "total_tokens_mean": 178.5
+  },
+  "gate": "PASS",
+  "design_power": 2.666485044320872
+}

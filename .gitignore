@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.pytest_cache/
+.ruff_cache/
+
+# corpora, indexes and model weights are reproducible from configs -- never committed
+data/raw/
+data/index/
+data/cache/
+models_cache/
+
+# run artifacts: the manifest and metrics ARE committed, the bulk is not
+runs/**/*.npz
+runs/**/*.pt
+runs/**/*.jsonl
+!runs/**/manifest.json
+!runs/**/metrics.json
+
+# secrets
+.env

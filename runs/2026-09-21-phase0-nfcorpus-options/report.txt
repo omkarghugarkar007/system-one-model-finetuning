@@ -1,0 +1,49 @@
+
+Setup
+=====
+Dataset(nfcorpus/test: 3,633 docs, 323 queries, 12,334 judgements, grades 0-2)
+grades: {1: 11758, 2: 576}
+BM25Index(3,633 docs, 26,320 terms, k1=0.9, b=0.4, avgdl=177.2)  built in 0.7s
+Laya on mps, temperature OFF (Phase 0 measures raw logits)
+layout=options, signature=title+lexical, 16 tokens per candidate at M=10
+  [PLAIN-1008] skipped: 7 probes, grades [0]
+  [2/2] PLAIN-1018           probes=14 rmse=0.3019 r2=0.5758 c_range=0.283
+
+T0/T1 -- measurement floor
+==========================
+  order-permutation std per candidate : 0.2898 nats
+  argmax changed by reordering       : 25.0%
+  (Laya is deterministic, so this IS the noise floor --
+   the plan's 'marker noise' is not a real quantity.)
+
+T2 -- additive fit  log p_iS = l_i - c_S   [THE GATE]
+=====================================================
+  residual RMSE      : 0.3019 nats
+  R^2                : 0.5758
+  c_S range (signal) : 0.2826 nats
+  residual / floor   : 1.04x
+
+T3 -- interaction (is the leftover systematic?)
+===============================================
+  R^2 of residual on grade x slate-mean : 0.0001
+  interaction coefficient               : +0.0666
+
+T4 -- anchor recovery of the offset
+===================================
+  usable slates/query : 8
+  corr(recovered c_S, fitted c_S) : 0.8553
+  offset RMSE         : 0.2135
+  anchor fit residual : 0.1036
+
+Evidence slicer
+===============
+  signature recall (query terms kept) : 0.286
+  budget report: {'slates': 16, 'option_tokens_mean': 14.63, 'option_tokens_min': 14, 'option_text_wanted_mean': 14.63, 'option_shrink_fired': 0.0, 'instruction_tokens_mean': 10.0, 'state_tokens_mean': 2.0, 'state_truncated_frac': 0.0, 'total_tokens_mean': 172.3}
+  throughput  : {'forwards': 2, 'slates': 16, 'total_ms': 2101.4, 'ms_per_slate': 131.34, 'slates_per_s': 7.61, 'device': 'mps'}
+
+GATE
+====
+  FAIL: residual is 1.04x the measurement floor, R^2=0.576
+  PASS     -> c_S behaves as a per-slate shift; anchoring is sound.
+  MARGINAL -> an affine map absorbs most of it; check T3 for shape.
+  FAIL     -> composition-dependent beyond an additive term.

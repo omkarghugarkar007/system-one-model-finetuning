@@ -1,0 +1,14 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+BM25Index(171,332 docs, 206,995 terms, k1=0.9, b=0.4, avgdl=121.0)
+Laya on mps, base checkpoint, temperature OFF
+8 usable queries
+
+Signal by evidence budget
+=========================
+  layout      signature  tok/cand  sig recall  corr(l,grade)   nDCG@10     BM25
+--------------------------------------------------------------------------------
+
+FAILED: TypeError: TitleOnly.__init__() got an unexpected keyword argument 'idf_lookup'

@@ -1,0 +1,35 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+BM25Index(171,332 docs, 206,995 terms, k1=0.9, b=0.4, avgdl=121.0)
+layout=state, 37 tokens/candidate at M=10
+  [1] 1              probes=34 latent spread=3.20
+  [2] 10             probes=36 latent spread=2.82
+  [3] 11             probes=24 latent spread=1.54
+  [4] 12             probes=32 latent spread=3.74
+  [5] 13             probes=36 latent spread=1.88
+  [6] 14             probes=36 latent spread=4.19
+  [7] 15             probes=17 latent spread=2.76
+  [8] 16             probes=36 latent spread=4.11
+  [9] 17             probes=36 latent spread=3.90
+  [10] 18             probes=36 latent spread=3.65
+
+Falsification test 4 -- cross-slate absolute scale
+==================================================
+Pooled correlation with the graded label, across all slates.
+Naive log-probabilities have no absolute scale; anchoring must beat them.
+
+  A  cands/slate   r naive  r anchored    delta    RMSE         slope   resid
+------------------------------------------------------------------------------
+  1            9    0.3375      0.3191  -0.0183   1.112    1.00+-0.00   0.000
+  2            8    0.3146      0.2943  -0.0203   0.961    0.79+-0.25   0.330
+  3            7    0.3019      0.3366  +0.0347   0.860    0.64+-0.27   0.478
+  4            6    0.3311      0.3270  -0.0041   0.898    0.66+-0.28   0.497
+  6            4    0.4030      0.3599  -0.0431   0.800    0.58+-0.29   0.635
+
+Read
+====
+  best A = 6: r 0.4030 -> 0.3599 (-0.0431)
+  Anchoring improves the pooled scale. The cost is 6 of 10 option slots, i.e. 2.50x the passes.
+  throughput: {'forwards': 120, 'slates': 1800, 'total_ms': 299348.3, 'ms_per_slate': 166.3, 'slates_per_s': 6.01, 'device': 'mps'}

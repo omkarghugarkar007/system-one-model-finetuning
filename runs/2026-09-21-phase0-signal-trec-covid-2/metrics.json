@@ -1,0 +1,48 @@
+{
+  "configs": {
+    "options/title": {
+      "tokens_per_candidate": 16,
+      "signature_recall": 0.34488711819389106,
+      "corr_latent_grade": 0.24037354913692682,
+      "ndcg10": 0.5392419089697071,
+      "ndcg10_bm25": 0.45462293712213725
+    },
+    "options/lexical": {
+      "tokens_per_candidate": 16,
+      "signature_recall": 0.25333902485296905,
+      "corr_latent_grade": 0.032862155541034846,
+      "ndcg10": 0.494079434799936,
+      "ndcg10_bm25": 0.45462293712213725
+    },
+    "options/title+lexical": {
+      "tokens_per_candidate": 16,
+      "signature_recall": 0.27289413773477517,
+      "corr_latent_grade": 0.20034395336044097,
+      "ndcg10": 0.49006614420641215,
+      "ndcg10_bm25": 0.45462293712213725
+    },
+    "state/title": {
+      "tokens_per_candidate": 37,
+      "signature_recall": 0.4280876494023904,
+      "corr_latent_grade": 0.023901056869267204,
+      "ndcg10": 0.40876796843814833,
+      "ndcg10_bm25": 0.45462293712213725
+    },
+    "state/lexical": {
+      "tokens_per_candidate": 37,
+      "signature_recall": 0.4771770062606716,
+      "corr_latent_grade": 0.3836721722370857,
+      "ndcg10": 0.6783142489059923,
+      "ndcg10_bm25": 0.45462293712213725
+    },
+    "state/title+lexical": {
+      "tokens_per_candidate": 37,
+      "signature_recall": 0.5441092771770062,
+      "corr_latent_grade": 0.4843247439408819,
+      "ndcg10": 0.7614454343204639,
+      "ndcg10_bm25": 0.45462293712213725
+    }
+  },
+  "verdict": "evidence_starved",
+  "budget_spread": 0.4604236870716147
+}

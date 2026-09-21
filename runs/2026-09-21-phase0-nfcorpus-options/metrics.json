@@ -1,0 +1,32 @@
+{
+  "order_noise_floor": 0.28978811569425067,
+  "additive_rmse": 0.3019052489511871,
+  "additive_r2": 0.5757545489647155,
+  "c_range": 0.2826064711003802,
+  "residual_over_floor": 1.0418137687527564,
+  "interaction_r2": 9.385124878713569e-05,
+  "anchor_offset_corr": 0.8552601939686713,
+  "anchor_offset_rmse": 0.21348354281223184,
+  "signature_recall": 0.2857142857142857,
+  "n_queries_used": 1,
+  "throughput": {
+    "forwards": 2,
+    "slates": 16,
+    "total_ms": 2101.4,
+    "ms_per_slate": 131.34,
+    "slates_per_s": 7.61,
+    "device": "mps"
+  },
+  "budget": {
+    "slates": 16,
+    "option_tokens_mean": 14.63,
+    "option_tokens_min": 14,
+    "option_text_wanted_mean": 14.63,
+    "option_shrink_fired": 0.0,
+    "instruction_tokens_mean": 10.0,
+    "state_tokens_mean": 2.0,
+    "state_truncated_frac": 0.0,
+    "total_tokens_mean": 172.3
+  },
+  "gate": "FAIL"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "phase0",
+  "status": "ok",
+  "git_commit": "unknown",
+  "started": 1789984432.029381,
+  "wall_seconds": 54.8,
+  "config": {
+    "dataset": "trec-covid",
+    "queries": 8,
+    "depth": 100,
+    "slate_size": 10,
+    "probes_per_grade": 10,
+    "slates_per_query": 40,
+    "perms": 8,
+    "layout": "options",
+    "signature": "title+lexical",
+    "model": "data/cache/laya",
+    "seed": 0
+  },
+  "env": {
+    "python": "3.12.13",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "numpy": "2.5.3",
+    "torch": "2.14.0",
+    "mps": true,
+    "cuda": false
+  }
+}
