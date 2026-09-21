@@ -30,7 +30,7 @@ import numpy as np
 from frontierrank.core.packing import OptionsPacker, StatePacker
 from frontierrank.data import BM25Index, load_beir, make_signature_builder
 from frontierrank.data.signatures import signature_recall
-from frontierrank.eval import ndcg_at_k
+from frontierrank.eval import ndcg_at_k, paired_bootstrap
 from frontierrank.experiments.phase0_identifiability import (fit_additive,
                                                              make_block_design)
 from frontierrank.experiments.runner import Run
@@ -90,7 +90,8 @@ def main():
                 f"{'corr(l,grade)':>14} {'nDCG@10':>9} {'BM25':>8}")
         run.log("-" * 80)
 
-        results = {}
+        results, per_query = {}, {}
+        bm25_per_query = None
         for layout, signame in CONFIGS:
             packer = (OptionsPacker(token_counter=counter) if layout == "options"
                       else StatePacker(token_counter=counter))
@@ -117,14 +118,52 @@ def main():
             r = {"tokens_per_candidate": per_cand,
                  "signature_recall": float(np.mean(recalls)),
                  "corr_latent_grade": float(np.mean(corrs)),
+                 "corr_se": float(np.std(corrs) / max(1.0, np.sqrt(len(corrs)))),
                  "ndcg10": float(np.mean(ndcgs)),
-                 "ndcg10_bm25": float(np.mean(bm_ndcgs))}
+                 "ndcg10_bm25": float(np.mean(bm_ndcgs)),
+                 "n_queries": len(ndcgs)}
+            # per-query arrays kept so every comparison can be PAIRED: the
+            # configs share queries, so unpaired error bars would badly
+            # overstate the uncertainty on their differences
+            per_query[f"{layout}/{signame}"] = np.asarray(ndcgs)
+            bm25_per_query = np.asarray(bm_ndcgs)
             results[f"{layout}/{signame}"] = r
             run.log(f"{layout:>8} {signame:>14} {per_cand:>9} "
                     f"{r['signature_recall']:>11.3f} {r['corr_latent_grade']:>14.4f} "
                     f"{r['ndcg10']:>9.4f} {r['ndcg10_bm25']:>8.4f}")
 
         run.metric("configs", results)
+
+        # ---------------------------------------------------- paired statistics
+        run.section("Paired bootstrap, 10k resamples over queries")
+        best_nd = max(per_query, key=lambda k: per_query[k].mean())
+        run.log(f"reference = {best_nd} (highest nDCG@10)")
+        run.log("")
+        run.log(f"{'config':>22} {'nDCG@10':>9} {'vs BM25':>9} {'95% CI':>20} "
+                f"{'vs best':>9} {'95% CI':>20}")
+        run.log("-" * 96)
+        stats = {}
+        for name, arr in sorted(per_query.items(), key=lambda kv: -kv[1].mean()):
+            d_bm, lo_bm, hi_bm, p_bm = paired_bootstrap(arr, bm25_per_query, seed=1)
+            d_bs, lo_bs, hi_bs, p_bs = paired_bootstrap(arr, per_query[best_nd], seed=2)
+            stats[name] = {"ndcg10": float(arr.mean()),
+                           "vs_bm25": d_bm, "vs_bm25_ci": [lo_bm, hi_bm], "vs_bm25_p": p_bm,
+                           "vs_best": d_bs, "vs_best_ci": [lo_bs, hi_bs], "vs_best_p": p_bs}
+            run.log(f"{name:>22} {arr.mean():>9.4f} {d_bm:>+9.4f} "
+                    f"[{lo_bm:>+7.4f},{hi_bm:>+7.4f}] {d_bs:>+9.4f} "
+                    f"[{lo_bs:>+7.4f},{hi_bs:>+7.4f}]")
+        run.metric("paired_stats", stats)
+        run.metric("bm25_ndcg10", float(bm25_per_query.mean()))
+        run.log("")
+        run.log("A CI excluding zero in the 'vs BM25' column is a real gain over the")
+        run.log("first stage. A CI containing zero in 'vs best' means that config is")
+        run.log("not distinguishable from the winner on this many queries.")
+        run.log("")
+        run.log("NOTE: nDCG@10 here is over a BALANCED PROBE SET of ~36 candidates per")
+        run.log("query drawn across all grades, not a realistic top-100 pool. These are")
+        run.log("not BEIR numbers and must not be compared to published ones. The BM25")
+        run.log("column is computed identically, so comparisons WITHIN this table hold.")
+
         best = max(results, key=lambda k: results[k]["corr_latent_grade"])
         worst = min(results, key=lambda k: results[k]["corr_latent_grade"])
         spread = (results[best]["corr_latent_grade"]

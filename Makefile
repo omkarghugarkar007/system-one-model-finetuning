@@ -37,3 +37,12 @@ data:            ## BEIR corpora into data/raw
 
 clean:           ## drop run artifacts, keep manifests and metrics
 	find runs -name '*.npz' -delete
+
+phase0-signal-full: ## F7 at full scale with paired bootstrap CIs
+	$(PY) scripts/run_phase0_signal.py --dataset trec-covid --queries 50 --slates-per-query 30
+
+anchor-probe:    ## are the templated pivots actually pivots?
+	$(PY) scripts/run_anchor_probe.py --dataset trec-covid --queries 20
+
+train:           ## Phase 1: fine-tune on nfcorpus, evaluate on trec-covid
+	$(PY) scripts/run_phase1_train.py --train nfcorpus --eval trec-covid

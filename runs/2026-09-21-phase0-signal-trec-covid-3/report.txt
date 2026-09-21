@@ -1,0 +1,51 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+BM25Index(171,332 docs, 206,995 terms, k1=0.9, b=0.4, avgdl=121.0)
+Laya on mps, base checkpoint, temperature OFF
+50 usable queries
+
+Signal by evidence budget
+=========================
+  layout      signature  tok/cand  sig recall  corr(l,grade)   nDCG@10     BM25
+--------------------------------------------------------------------------------
+ options          title        16       0.334         0.2466    0.5851   0.5753
+ options        lexical        16       0.270        -0.0198    0.4608   0.5753
+ options  title+lexical        16       0.251         0.1409    0.5414   0.5753
+   state          title        37       0.424         0.3664    0.6929   0.5753
+   state        lexical        37       0.498         0.4256    0.7062   0.5753
+   state  title+lexical        37       0.542         0.5446    0.8070   0.5753
+
+Paired bootstrap, 10k resamples over queries
+============================================
+reference = state/title+lexical (highest nDCG@10)
+
+                config   nDCG@10   vs BM25               95% CI   vs best               95% CI
+------------------------------------------------------------------------------------------------
+   state/title+lexical    0.8070   +0.2317 [+0.1514,+0.3115]   +0.0000 [+0.0000,+0.0000]
+         state/lexical    0.7062   +0.1310 [+0.0421,+0.2213]   -0.1008 [-0.1468,-0.0534]
+           state/title    0.6929   +0.1177 [+0.0438,+0.1938]   -0.1141 [-0.1639,-0.0639]
+         options/title    0.5851   +0.0098 [-0.0642,+0.0817]   -0.2219 [-0.2691,-0.1749]
+ options/title+lexical    0.5414   -0.0338 [-0.1167,+0.0492]   -0.2655 [-0.3187,-0.2118]
+       options/lexical    0.4608   -0.1144 [-0.1943,-0.0328]   -0.3461 [-0.4056,-0.2836]
+
+A CI excluding zero in the 'vs BM25' column is a real gain over the
+first stage. A CI containing zero in 'vs best' means that config is
+not distinguishable from the winner on this many queries.
+
+NOTE: nDCG@10 here is over a BALANCED PROBE SET of ~36 candidates per
+query drawn across all grades, not a realistic top-100 pool. These are
+not BEIR numbers and must not be compared to published ones. The BM25
+column is computed identically, so comparisons WITHIN this table hold.
+
+Read
+====
+  best  state/title+lexical    corr=0.5446 @ 37 tok/cand
+  worst options/lexical        corr=-0.0198 @ 16 tok/cand
+  spread across evidence budgets: 0.5644
+
+  (b) STARVED: the budget moved the signal materially. The
+      bottleneck is the slicer and the layout, not the weights.
+
+  throughput: {'forwards': 600, 'slates': 9000, 'total_ms': 983577.9, 'ms_per_slate': 109.29, 'slates_per_s': 9.15, 'device': 'mps'}

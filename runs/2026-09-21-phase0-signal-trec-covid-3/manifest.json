@@ -1,0 +1,25 @@
+{
+  "name": "phase0-signal",
+  "status": "ok",
+  "git_commit": "160cb1e-dirty",
+  "started": 1789986192.024847,
+  "wall_seconds": 1032.7,
+  "config": {
+    "dataset": "trec-covid",
+    "queries": 50,
+    "depth": 100,
+    "slate_size": 10,
+    "slates_per_query": 30,
+    "probes_per_grade": 12,
+    "model": "data/cache/laya",
+    "seed": 0
+  },
+  "env": {
+    "python": "3.12.13",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "numpy": "2.5.3",
+    "torch": "2.14.0",
+    "mps": true,
+    "cuda": false
+  }
+}
