@@ -84,8 +84,9 @@ That is also what production would use.
 | [x] | Sliced evaluation (accuracy, ECE, Brier, AURC) | `systemone.eval.typed` |
 | [x] | One-minute end-to-end quickstart | `examples/01_quickstart.py` |
 | [x] | The cookbook | `RECIPE.md` |
-| [ ] | Second example: distillation from a teacher | `examples/02_*.py` |
-| [ ] | Second example: bring-your-own JSONL | `examples/03_*.py` |
+| [x] | Bring-your-own-JSONL example | `examples/02_your_own_data.py` |
+| [x] | Distillation example with a three-arm A/B | `examples/03_distill_from_a_teacher.py` |
+| [x] | Generic typed-question teacher path | `teachers.JevTeacher.ask` (F17) |
 | [ ] | Confirm the recipe on a non-reranking task | — |
 
 ## Phase 2 — the frontier

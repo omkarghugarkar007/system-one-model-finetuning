@@ -91,6 +91,22 @@ class CachedTeacher:
         p.write_text(json.dumps(_verdict_to_json(v), indent=1))
         return v
 
+    def ask(self, state, qtype, instructions, criteria=None):
+        """Cached passthrough for the generic typed-question path."""
+        import numpy as _np
+        digest = request_digest(str(state), [qtype, str(instructions)],
+                                [str(criteria)], self.backend_tag + "/ask")
+        p = self.path_for(digest)
+        if p.exists():
+            self.hits += 1
+            return _np.asarray(json.loads(p.read_text())["probs"], dtype=float)
+        if self.read_only:
+            raise KeyError(f"cache miss for {digest} and read_only=True")
+        probs = self.inner.ask(state, qtype, instructions, criteria)
+        self.misses += 1
+        p.write_text(json.dumps({"probs": _np.asarray(probs).tolist()}))
+        return _np.asarray(probs, dtype=float)
+
     def stats(self) -> dict:
         n = self.hits + self.misses
         return {"hits": self.hits, "misses": self.misses,

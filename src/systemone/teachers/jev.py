@@ -184,3 +184,52 @@ class JevTeacher:
             meta={"response_model": resp.get("model"), "id": resp.get("id"),
                   "cost_reported": usage.get("cost") is not None},
         ).validate()
+
+    # ------------------------------------------------------------------ ask
+    def ask(self, state, qtype: str, instructions, criteria=None) -> np.ndarray:
+        """Ask the teacher the SAME typed question you will ask the student.
+
+        This is the distillation path for ordinary fine-tuning, and it is
+        distinct from `grade()` on purpose. `grade()` is reranking-shaped: many
+        candidates against one rubric. Distilling a classification or rating
+        question through it means passing the options as both the candidates
+        and the rubric, which asks the teacher a question nobody meant and
+        returns a distribution over the wrong thing.
+
+        Returns probabilities over the question's options, in option order.
+        """
+        if qtype not in ("choice", "score", "noul"):
+            raise ValueError(f"unknown question type {qtype!r}")
+        q: dict = {"type": qtype, "instructions": instructions}
+        if qtype == "choice":
+            crit = (criteria if isinstance(criteria, dict)
+                    else {c: None for c in (criteria or [])})
+            if not 2 <= len(crit) <= self.MAX_OPTIONS:
+                raise ValueError(f"choice takes 2-{self.MAX_OPTIONS} options")
+            q["criteria"] = crit
+            keys = list(crit)
+        elif qtype == "score":
+            levels = list(criteria or [])
+            if not 2 <= len(levels) <= self.MAX_LEVELS:
+                raise ValueError(f"score takes 2-{self.MAX_LEVELS} levels")
+            q["criteria"] = levels
+            keys = [str(i) for i in range(len(levels))]
+        else:
+            if criteria:
+                q["criteria"] = criteria
+            keys = ["false", "true"]
+
+        resp, _ = self._post({"state": state, "model": self.model,
+                              "questions": {"q": q}})
+        a = (resp.get("answers") or {}).get("q")
+        if a is None:
+            raise JevError(f"no answer: {str(resp)[:300]}")
+
+        if qtype == "noul":
+            p1 = float(a.get("noul", 0.5))
+            return np.array([1.0 - p1, p1])
+        probs = a.get("probabilities")
+        if not probs:
+            raise JevError(f"answer carried no distribution: {a}")
+        out = np.array([float(probs.get(k, 0.0)) for k in keys], dtype=float)
+        return out / out.sum() if out.sum() > 0 else np.full(len(keys), 1.0 / len(keys))

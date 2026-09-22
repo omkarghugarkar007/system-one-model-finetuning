@@ -140,17 +140,36 @@ pre-truncates evenly so the loss is visible instead of positional.
 **Compare against the majority-class baseline, never against chance.** A model
 below majority is worse than a constant. `eval.report()` prints it.
 
-**Soft labels beat hard ones.** If you have a teacher, store its whole
-distribution:
+**Soft labels are conditional, not automatic.** If you have a teacher, you can
+store its whole distribution:
 
 ```python
 score(text, "Rate severity.", LEVELS, soft_label=[0.01, 0.04, 0.21, 0.74])
 ```
 
-`P(3)=0.74` with mass on 2 tells the student where its own uncertainty belongs.
-The argmax throws that away and is the most reliable way to produce a
-confident, badly calibrated model. `systemone.teachers` has Jev, a cached
-wrapper, and an in-session human grader on the same interface.
+The usual argument is that `P(3)=0.74` with mass on 2 tells the student where
+its uncertainty belongs, while the argmax throws that away. That is true *when
+the teacher knows something your labels do not.* We measured it on the bundled
+routing task and got a dead heat — ECE 0.1217 hard vs 0.1275 soft — because the
+teacher agreed with the labels almost perfectly and so carried no extra
+information. `examples/03_distill_from_a_teacher.py` runs the three-arm
+comparison; run it on your data rather than assuming.
+
+Two things to watch:
+
+- **Distillation transfers the teacher's confidence LEVEL, not only its
+  ordering.** A teacher that is uncertain about *your bespoke criteria* — as a
+  zero-shot teacher usually is — will train a well-calibrated student to be
+  underconfident. Sharpen the teacher distribution (`--sharpen`) when its
+  spread reflects its own ignorance rather than the item's ambiguity.
+- **Ask the teacher the same question you ask the student.** `teachers.JevTeacher.ask()`
+  posts the actual typed question. The reranking-shaped `grade()` takes
+  candidates and a rubric; pushing a classification question through it asks
+  something nobody meant. We did exactly that once, and the resulting
+  "distillation hurts calibration" finding was entirely an artifact of it.
+
+`systemone.teachers` has Jev, a content-addressed cache, and an in-session
+human grader on the same interface.
 
 **Mine hard negatives from several sources.** Negatives from one retriever or
 one heuristic teach that source's failure modes rather than your boundary. The

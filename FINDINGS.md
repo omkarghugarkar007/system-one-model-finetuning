@@ -299,6 +299,43 @@ OS. Mid-run the system reached 93% swap usage and throughput collapsed from
 in response: the memory lever, and periodic checkpoints, because a long run on
 constrained hardware that only saves at the end will eventually lose everything.
 
+### F17 — Distillation is conditional, and one interface is a trap · **confirmed**
+
+RECIPE.md originally asserted that soft labels beat hard ones. Tested on the
+bundled routing task with Jev as teacher, three arms from identical weights,
+n = 54 test:
+
+| arm | accuracy | ECE | Brier | AURC |
+|---|---|---|---|---|
+| hard labels | 0.833 | 0.1217 | 0.1270 | 0.0193 |
+| soft (teacher distribution) | 0.833 | 0.1275 | 0.1289 | 0.0193 |
+| sharpened (T = 0.5) | 0.833 | 0.1218 | 0.1271 | 0.0193 |
+
+**A dead heat.** Jev agrees with these labels almost perfectly — P(billing) =
+1.00 on a double-charge complaint — so its distribution carries nothing the
+hard label did not. Distillation costs API calls and buys nothing *here*. It
+pays when the teacher knows something the labels do not: genuinely ambiguous
+items, or a small label budget where the teacher generalises better.
+
+**The interface trap, which produced a false finding first.** The first run
+showed distillation badly *hurting* calibration (ECE 0.122 → 0.349). That was
+a bug in the example, not a result: `TeacherProtocol.grade()` is
+reranking-shaped — many candidates against one rubric — and a classification
+question pushed through it passes the options as both the candidates and the
+rubric. The teacher answered a question nobody meant and returned a
+distribution over the wrong thing.
+
+`JevTeacher.ask(state, qtype, instructions, criteria)` was added as the generic
+path: it posts the actual typed question and returns probabilities over its
+options. Sanity-checked directly — a double-charge complaint returns
+P(billing) = 1.00, and "search takes 8 seconds for half of accounts" returns
+expected severity 1.95 against a rubric whose level 2 is "some customers
+degraded".
+
+Worth recording because the failure mode is silent and plausible: a wrong-shaped
+teacher call produces numbers, the numbers move, and the conclusion looks like
+science.
+
 ### F16 — A 22M cross-encoder beats the fine-tuned model on quality · **confirmed**
 
 The comparison `plan.md` names itself and calls uncomfortable. trec-covid, 30
