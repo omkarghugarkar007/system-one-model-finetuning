@@ -12,8 +12,8 @@ import argparse
 
 import numpy as np
 
-from systemone.reranking.data import BM25Index, load_beir
 from systemone.eval import ndcg_at_k
+from systemone.reranking.data import BM25Index, load_beir
 
 PUBLISHED = {"trec-covid": 0.656, "nfcorpus": 0.325, "scifact": 0.665}
 

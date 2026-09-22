@@ -4,8 +4,8 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from systemone import choice, score                                   # noqa: E402
-from systemone.eval import report, slice_report                       # noqa: E402
+from systemone import choice, score  # noqa: E402
+from systemone.eval import report, slice_report  # noqa: E402
 from systemone.train.losses import TypedDecisionLoss, typed_ce, typed_rps  # noqa: E402
 
 

@@ -14,8 +14,9 @@ grade does not.
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Protocol, Sequence, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 import numpy as np
 
@@ -88,7 +89,7 @@ class TeacherVerdict:
     def n_levels(self) -> int:
         return int(self.level_probs.shape[1])
 
-    def validate(self) -> "TeacherVerdict":
+    def validate(self) -> TeacherVerdict:
         p = np.asarray(self.level_probs, dtype=float)
         if p.ndim != 2:
             raise ValueError(f"level_probs must be 2-D, got {p.shape}")

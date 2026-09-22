@@ -67,7 +67,7 @@ def _fixture(seed=0, n=60):
     truth = rng.normal(0, 1.5, n)
     sigs = [f"c{i}" for i in range(n)]
     anchors = [Anchor(f"a{j}", v) for j, v in enumerate(np.linspace(-2.2, 2.2, 4))]
-    table = dict(zip(sigs, truth)) | {a.text: a.utility for a in anchors}
+    table = dict(zip(sigs, truth, strict=False)) | {a.text: a.utility for a in anchors}
 
     class M:
         def choice_logprobs(self, instr, options, state):

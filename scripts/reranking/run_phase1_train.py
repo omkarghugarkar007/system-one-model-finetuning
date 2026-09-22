@@ -16,18 +16,15 @@ from __future__ import annotations
 import argparse
 
 import numpy as np
-import torch
 
-from systemone.reranking.packing import OptionsPacker, StatePacker
-from systemone.reranking.data import BM25Index, load_beir, make_signature_builder
-from systemone.utils.runner import Run
 from systemone.model import LayaRuntime
 from systemone.model.heads import FrontierRankModel
 from systemone.reranking.anchor_pool import AnchorPool
-from systemone.reranking.slate_dataset import (SlateDataset, SlateSpec,
-                                                 collate_slates)
-from systemone.train.trainer_ranking import (TrainConfig, Trainer, TrainedScorer,
-                                           make_eval_fn)
+from systemone.reranking.data import BM25Index, load_beir, make_signature_builder
+from systemone.reranking.packing import OptionsPacker, StatePacker
+from systemone.reranking.slate_dataset import SlateDataset, SlateSpec, collate_slates
+from systemone.train.trainer_ranking import TrainConfig, TrainedScorer, Trainer, make_eval_fn
+from systemone.utils.runner import Run
 
 
 def main():
@@ -93,8 +90,10 @@ def main():
 
         anchor_pool = AnchorPool(strategy=args.anchors)
         if args.anchors == "teacher":
+            import os
+            import pathlib as _pl
+
             from systemone.teachers import CachedTeacher, JevTeacher
-            import os, pathlib as _pl
             if not os.environ.get("OPENROUTER_API_KEY"):
                 envf = _pl.Path(".env")
                 if envf.exists():

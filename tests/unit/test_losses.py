@@ -3,9 +3,14 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from systemone.train.losses import (CompositeRankingLoss, anchor_affine_loss,
-                                          anchor_monotone_loss, coral_loss,
-                                          listnet_loss, rps_loss)
+from systemone.train.losses import (
+    CompositeRankingLoss,
+    anchor_affine_loss,
+    anchor_monotone_loss,
+    coral_loss,
+    listnet_loss,
+    rps_loss,
+)
 
 
 def _slate():

@@ -1,0 +1,42 @@
+{
+  "minilm_throughput": {
+    "pairs": 40,
+    "total_ms": 466.1,
+    "ms_per_pair": 11.653,
+    "pairs_per_s": 85.8,
+    "device": "mps"
+  },
+  "results": {
+    "BM25 (first stage)": {
+      "ndcg10": 0.7738031907961949,
+      "recall10": 0.675,
+      "mrr10": 1.0,
+      "params_M": 0.0,
+      "ms_per_query": 0.0,
+      "note": "the floor"
+    },
+    "MiniLM-L6 cross-encoder": {
+      "ndcg10": 0.6083313113328221,
+      "recall10": 0.6416666666666666,
+      "mrr10": 0.75,
+      "params_M": 22.7,
+      "ms_per_query": 239.45891857147217,
+      "note": "100 passes/query",
+      "ece_raw": 0.2486,
+      "ece_cal": 0.1624,
+      "brier_cal": 0.2126,
+      "temperature": 20.0,
+      "mean_p": 0.9691
+    }
+  },
+  "vs_bm25": {
+    "MiniLM-L6 cross-encoder": {
+      "delta": -0.16547187946337272,
+      "ci": [
+        -0.20499514578749167,
+        -0.12594861313925376
+      ],
+      "p": 0.0
+    }
+  }
+}

@@ -34,12 +34,12 @@ import time
 import numpy as np
 import torch
 
+from systemone.eval import ece, mrr_at_k, ndcg_at_k, paired_bootstrap, recall_at_k
+from systemone.reranking.anchor_pool import AnchorPool
+from systemone.reranking.data import BM25Index, load_beir, make_signature_builder
 from systemone.reranking.packing import StatePacker
 from systemone.reranking.scoring import AnchoredScorer
-from systemone.reranking.data import BM25Index, load_beir, make_signature_builder
-from systemone.eval import ece, mrr_at_k, ndcg_at_k, paired_bootstrap, recall_at_k
 from systemone.utils.runner import Run
-from systemone.reranking.anchor_pool import AnchorPool
 
 
 def brier(p, y):
@@ -186,7 +186,7 @@ def main():
 
         if "laya" in want:
             from systemone.model import LayaRuntime
-from systemone.reranking.scorer import LayaScorer
+            from systemone.reranking.scorer import LayaScorer
             rt = LayaRuntime(args.laya, apply_temperature=False)
             packer = StatePacker(token_counter=None)
             # built ONCE: inlining this as a lambda rebuilt a 207k-entry dict

@@ -44,6 +44,14 @@ general pretraining gives it. Training teaches it *your* rubric:
 | **after ~55s of fine-tuning** | **0.839** | **0.094** | **0.176** | **0.019** |
 | majority-class baseline | 0.268 | | | |
 
+## The three examples
+
+| | what it shows | needs |
+|---|---|---|
+| `examples/01_quickstart.py` | the whole recipe end to end, ~1 min | weights |
+| `examples/02_your_own_data.py` | point it at a JSONL and go | weights |
+| `examples/03_distill_from_a_teacher.py` | is a teacher worth it? a 3-arm A/B | weights (+ a key, or `--simulated`) |
+
 ## Your own data
 
 Three question types, the same shapes the inference API takes:
@@ -125,6 +133,7 @@ docs/vendor/   pinned upstream source and docs, so every claim is checkable
 ```
 
 - **[RECIPE.md](RECIPE.md)** — the cookbook. Read before your first real run.
+- `make help` — every entry point, including the reranking example.
 - **[FINDINGS.md](FINDINGS.md)** — everything we measured, including the
   negative results and the four bugs we shipped and caught.
 - **[docs/ROADMAP.md](docs/ROADMAP.md)** — what is done and what is not.

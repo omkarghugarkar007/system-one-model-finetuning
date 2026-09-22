@@ -29,8 +29,9 @@ quality, and Part XI asks for exactly that separation.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Protocol, Sequence
+from typing import Protocol
 
 import numpy as np
 
@@ -171,7 +172,7 @@ def make_signature_builder(kind: str = "title+lexical", **kw) -> SignatureBuilde
     """
     cls = {"title": TitleOnly, "head": Head, "lexical": LexicalWindow,
            "title+lexical": TitleThenWindow}[kind]
-    accepted = {f for f in cls.__dataclass_fields__}
+    accepted = set(cls.__dataclass_fields__)
     return cls(**{k: v for k, v in kw.items() if k in accepted})
 
 

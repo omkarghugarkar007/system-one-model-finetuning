@@ -22,8 +22,8 @@ Three things here that the simulation did not need and real text does:
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Sequence
 
 import numpy as np
 
@@ -126,7 +126,7 @@ class AnchoredScorer:
         slate_of = np.full(n, -1, dtype=int)
         fits, suspect, anchor_logp = [], [], {}
 
-        for (s, perm, k), p, lp in zip(placements, packed, logps):
+        for (s, perm, k), _p, lp in zip(placements, packed, logps, strict=False):
             lp = np.asarray(lp, dtype=float)
             if lp.shape[0] != len(perm):
                 raise ValueError(f"scorer returned {lp.shape[0]} logprobs for "

@@ -11,15 +11,19 @@ import time
 
 import numpy as np
 
-from systemone.reranking.packing import OptionsPacker, StatePacker
+from systemone.model import LayaRuntime
 from systemone.reranking.data import BM25Index, load_beir, make_signature_builder
 from systemone.reranking.data.signatures import signature_recall
 from systemone.reranking.experiments.phase0_identifiability import (
-    anchor_recovery, fit_additive, interaction_test, make_block_design,
-    order_noise_floor)
-from systemone.utils.runner import Run
-from systemone.model import LayaRuntime
+    anchor_recovery,
+    fit_additive,
+    interaction_test,
+    make_block_design,
+    order_noise_floor,
+)
+from systemone.reranking.packing import OptionsPacker, StatePacker
 from systemone.reranking.scorer import LayaScorer
+from systemone.utils.runner import Run
 
 
 def build_probes(ds, qid, ranked_ids, n_per_grade=7):

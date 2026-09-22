@@ -10,7 +10,7 @@ anything here.
 """
 from .anchor_fit import AnchorCalibrator, SlateFit, fit_slate
 from .cascade import Cascade, CascadeResult
-from .controller import Action, ActionSpec, Controller, DEFAULT_ACTIONS
+from .controller import DEFAULT_ACTIONS, Action, ActionSpec, Controller
 from .frontier import Frontier, compute_frontier, expected_regret
 from .packing import OptionsPacker, PackedSlate, StatePacker, make_packer
 from .scoring import Anchor, AnchoredScorer, ScoredPool

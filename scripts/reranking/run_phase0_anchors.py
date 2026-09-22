@@ -14,14 +14,19 @@ import argparse
 
 import numpy as np
 
-from systemone.reranking.packing import OptionsPacker, StatePacker
+from systemone.model import LayaRuntime
 from systemone.reranking.data import BM25Index, load_beir, make_signature_builder
 from systemone.reranking.experiments.phase0_identifiability import (
-    anchored_slate_design, cross_slate_scale, estimate_slope_prior,
-    fit_additive, make_block_design, spread_anchors)
-from systemone.utils.runner import Run
-from systemone.model import LayaRuntime
+    anchored_slate_design,
+    cross_slate_scale,
+    estimate_slope_prior,
+    fit_additive,
+    make_block_design,
+    spread_anchors,
+)
+from systemone.reranking.packing import OptionsPacker, StatePacker
 from systemone.reranking.scorer import LayaScorer
+from systemone.utils.runner import Run
 
 
 def main():
@@ -57,6 +62,7 @@ def main():
         rt = LayaRuntime(args.model, apply_temperature=False)
         if args.checkpoint:
             import torch
+
             from systemone.model.heads import FrontierRankModel
             from systemone.train.trainer_ranking import TrainedScorer
             model = FrontierRankModel(rt.model, n_levels=4)
@@ -83,6 +89,7 @@ def main():
         if args.anchor_spread == "teacher":
             import os
             import pathlib as _pl
+
             from systemone.teachers import CachedTeacher, JevTeacher
             if not os.environ.get("OPENROUTER_API_KEY"):
                 envf = _pl.Path(".env")

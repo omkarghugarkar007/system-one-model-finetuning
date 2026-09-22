@@ -110,7 +110,7 @@ class Controller:
         for spec in self.actions:
             if frontier.size < spec.applicable_min_frontier:
                 continue
-            if spec.name == Action.WIDEN:
+            if spec.name == Action.WIDEN:  # noqa: SIM102 - keep the comment attached
                 # only sensible when the whole pool looks weak, not when the
                 # ordering is merely uncertain
                 if pool_quality is None or pool_quality > 0.35:

@@ -47,10 +47,7 @@ def stem(token: str) -> str:
 
 # a small, conventional list. Deliberately not aggressive: BM25's IDF already
 # discounts frequent terms, and stripping too much hurts phrase-ish queries.
-STOPWORDS = frozenset("""
-a an and are as at be by for from has have he in is it its of on or that the
-to was were will with this these those i you we they them his her our your
-""".split())
+STOPWORDS = frozenset(["a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "has", "have", "he", "in", "is", "it", "its", "of", "on", "or", "that", "the", "to", "was", "were", "will", "with", "this", "these", "those", "i", "you", "we", "they", "them", "his", "her", "our", "your"])
 
 
 def tokenize(text: str, drop_stopwords: bool = True,
@@ -80,7 +77,7 @@ class BM25Index:
     # ------------------------------------------------------------------ build
     @classmethod
     def build(cls, doc_ids, texts, k1: float = 0.9, b: float = 0.4,
-              drop_stopwords: bool = True, stemming: bool = True) -> "BM25Index":
+              drop_stopwords: bool = True, stemming: bool = True) -> BM25Index:
         from scipy import sparse
 
         self = cls(list(doc_ids), k1, b, stemming)

@@ -33,13 +33,13 @@ __all__ = ["accuracy", "brier", "aurc", "confidence_from_probs", "slice_report",
 
 
 def accuracy(probs, labels) -> float:
-    return float(np.mean([int(np.argmax(p) == y) for p, y in zip(probs, labels)]))
+    return float(np.mean([int(np.argmax(p) == y) for p, y in zip(probs, labels, strict=False)]))
 
 
 def brier(probs, labels) -> float:
     """Multiclass Brier: mean squared error against the one-hot truth."""
     tot = 0.0
-    for p, y in zip(probs, labels):
+    for p, y in zip(probs, labels, strict=False):
         p = np.asarray(p, dtype=float)
         t = np.zeros_like(p)
         t[y] = 1.0
@@ -97,7 +97,7 @@ def slice_report(predictions, by: str = "options", n_bins: int = 15) -> dict:
         p = [r["probs"] for r in rows]
         y = [r["example"].label for r in rows]
         conf = np.array([float(np.max(q)) for q in p])
-        ok = np.array([float(np.argmax(q) == t) for q, t in zip(p, y)])
+        ok = np.array([float(np.argmax(q) == t) for q, t in zip(p, y, strict=False)])
         counts = np.bincount(y, minlength=max(y) + 1)
         out[key] = {"n": len(rows), "accuracy": round(accuracy(p, y), 4),
                     "majority": round(float(counts.max() / len(y)), 4),

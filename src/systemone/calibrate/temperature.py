@@ -97,10 +97,10 @@ class TemperatureMap:
         return e / e.sum(axis=-1, keepdims=True)
 
     @classmethod
-    def fit(cls, records, min_samples: int = 50) -> "TemperatureMap":
+    def fit(cls, records, min_samples: int = 50) -> TemperatureMap:
         """`records` is an iterable of (logits, label, qtype)."""
         by: dict[str, list] = {}
-        allz, ally = [], []
+        allz, _ally = [], []
         for logits, label, qtype in records:
             z = np.asarray(logits, dtype=float)
             by.setdefault(cls.bucket(qtype, z.size), []).append((z, int(label)))
@@ -193,7 +193,7 @@ def reliability_curve(conf, correct, n_bins: int = 15):
     correct = np.asarray(correct, dtype=float)
     edges = np.linspace(0.0, 1.0, n_bins + 1)
     rows = []
-    for lo, hi in zip(edges[:-1], edges[1:]):
+    for lo, hi in zip(edges[:-1], edges[1:], strict=False):
         m = (conf > lo) & (conf <= hi) if lo > 0 else (conf >= lo) & (conf <= hi)
         if m.any():
             rows.append(((lo + hi) / 2, float(conf[m].mean()),

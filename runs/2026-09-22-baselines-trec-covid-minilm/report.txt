@@ -1,0 +1,30 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+BM25Index(171,332 docs, 165,572 terms, k1=0.9, b=0.4, stem=True, avgdl=121.0)
+2 queries, depth 20, relevant = grade >= 1, 2000 chars per doc, identical for every system
+systems: ['minilm']
+
+Systems
+=======
+  BM25 (first stage)         nDCG@10=0.7738  ECE=n/a
+  MiniLM-L6 cross-encoder    nDCG@10=0.6083  ECE=0.2486->0.1624  239 ms/q
+
+Quality and calibration, identical pool
+=======================================
+system                       params   nDCG@10    R@10  MRR@10  ECE raw  ECE cal      T   Brier    ms/q
+--------------------------------------------------------------------------------------------------------
+BM25 (first stage)              0.0    0.7738  0.6750  1.0000      nan      nan    nan     nan       0
+MiniLM-L6 cross-encoder        22.7    0.6083  0.6417  0.7500   0.2486   0.1624  20.00  0.2126     239
+
+ECE raw = as shipped, on a held-out half of the queries.
+ECE cal = after a one-parameter temperature fitted on the other half.
+The second is what you would deploy; the first largely measures
+whether a model's training corpus had a similar positive rate.
+
+Paired bootstrap vs BM25, 10k resamples
+=======================================
+system                      delta nDCG@10                 95% CI        p
+--------------------------------------------------------------------------
+MiniLM-L6 cross-encoder           -0.1655 [ -0.2050, -0.1259]   0.0000

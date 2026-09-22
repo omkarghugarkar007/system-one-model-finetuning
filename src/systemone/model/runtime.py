@@ -93,7 +93,7 @@ class LayaConfig:
     temperature_by_options: dict = None
 
     @classmethod
-    def from_dir(cls, d: str | Path) -> "LayaConfig":
+    def from_dir(cls, d: str | Path) -> LayaConfig:
         cfg = json.loads((Path(d) / "rl_agent_config.json").read_text())
         return cls(max_len=cfg["max_len"], head_max_len=cfg["head_max_len"],
                    head_layers=cfg["head_layers"],

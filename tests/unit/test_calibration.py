@@ -2,9 +2,13 @@
 import numpy as np
 import pytest
 
-from systemone.calibrate import (ConformalIntervals, CoverageMonitor,
-                                      TemperatureMap, coverage_by_group,
-                                      ece_by_bucket, fit_temperature)
+from systemone.calibrate import (
+    ConformalIntervals,
+    CoverageMonitor,
+    TemperatureMap,
+    coverage_by_group,
+    ece_by_bucket,
+)
 
 
 def _sharp_records(n=3000, true_t=3.0, seed=0):

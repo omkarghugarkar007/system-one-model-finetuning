@@ -67,7 +67,7 @@ for A in (1,2,3,4,6,8):
     print(f"{A:>10} | {r['naive'][0]:>8.4f}      {r['shift'][0]:>8.4f}      {r['affine'][0]:>8.4f}      {r['ridge'][0]:>8.4f}")
 print(f"\n  pointwise 4-level rubric (globally comparable, coarse) : {r['rubric4'][0]:.4f}")
 print(f"  pointwise continuous, same noise (upper bound)         : {r['pointwise'][0]:.4f}")
-print(f"  oracle                                                 : 1.0000")
+print("  oracle                                                 : 1.0000")
 
 print("\n\nSlate assignment matters (A=4, ridge):\n")
 for blocked,tag in ((True,"blocked (by first-stage rank)"),(False,"random (shuffled)")):

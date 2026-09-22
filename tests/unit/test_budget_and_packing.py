@@ -1,10 +1,12 @@
 """The token budget is load-bearing: it decided the slate design. Pin it down."""
-import numpy as np
-import pytest
 
-from systemone.model.budget import (DEFAULT_BUDGET, SlateLayout,
-                                      max_options_for_option_text,
-                                      option_tokens_available, plan_slate_budget)
+from systemone.model.budget import (
+    DEFAULT_BUDGET,
+    SlateLayout,
+    max_options_for_option_text,
+    option_tokens_available,
+    plan_slate_budget,
+)
 from systemone.reranking.packing import OptionsPacker, StatePacker
 
 
@@ -22,7 +24,7 @@ def test_shrink_fires_from_four_options():
 
 def test_option_budget_is_monotone_decreasing_in_slate_size():
     got = [option_tokens_available(m) for m in range(2, 40)]
-    assert all(a >= b for a, b in zip(got, got[1:]))
+    assert all(a >= b for a, b in zip(got, got[1:], strict=False))
 
 
 def test_option_budget_never_falls_below_the_floor():

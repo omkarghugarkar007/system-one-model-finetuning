@@ -5,8 +5,7 @@ fitted to memorised answers, and the frontier needs interval coverage, which is
 a different property from ECE.
 """
 from .conformal import ConformalIntervals, CoverageMonitor, coverage_by_group
-from .temperature import (TemperatureMap, ece_by_bucket, fit_temperature,
-                          reliability_curve)
+from .temperature import TemperatureMap, ece_by_bucket, fit_temperature, reliability_curve
 
 __all__ = ["TemperatureMap", "fit_temperature", "ece_by_bucket",
            "reliability_curve", "ConformalIntervals", "coverage_by_group",

@@ -39,7 +39,7 @@ def ece(probs, correct, n_bins=15):
     y = np.asarray(correct, dtype=float).ravel()
     edges = np.linspace(0.0, 1.0, n_bins + 1)
     total = 0.0
-    for lo, hi in zip(edges[:-1], edges[1:]):
+    for lo, hi in zip(edges[:-1], edges[1:], strict=False):
         m = (p > lo) & (p <= hi) if lo > 0 else (p >= lo) & (p <= hi)
         if not m.any():
             continue

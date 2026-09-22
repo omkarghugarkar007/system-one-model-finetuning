@@ -1,9 +1,7 @@
 """The Pareto frontier is the deliverable, so its arithmetic is load-bearing."""
-import numpy as np
 import pytest
 
-from systemone.reranking.reporting import (Point, frontier_table, improvement_over,
-                                    pareto_front)
+from systemone.reranking.reporting import Point, frontier_table, improvement_over, pareto_front
 
 
 def _grid():
@@ -67,5 +65,5 @@ def test_table_stars_exactly_the_front():
     front = {p.name for p in pareto_front(pts)}
     for line in table.splitlines():
         for p in pts:
-            if line.rstrip().endswith(tuple()) and f" {p.name} " in line:
+            if line.rstrip().endswith(()) and f" {p.name} " in line:
                 assert line.startswith(" *") == (p.name in front)

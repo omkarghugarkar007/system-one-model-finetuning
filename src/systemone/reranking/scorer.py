@@ -9,12 +9,12 @@ protocol and for single-slate probing.
 """
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
-from .packing import PackedSlate
 from ..model.runtime import LayaRuntime
+from .packing import PackedSlate
 
 __all__ = ["LayaScorer"]
 

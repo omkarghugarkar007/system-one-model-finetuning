@@ -24,8 +24,9 @@ and invisible. `StatePacker` reports it in `info["per_candidate_chars"]`.
 """
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Callable, Protocol, Sequence
+from typing import Protocol
 
 from ..model.budget import DEFAULT_BUDGET, LayaBudget, SlateLayout, plan_slate_budget
 
@@ -93,7 +94,7 @@ class OptionsPacker:
         return PackedSlate(self.instructions, opts, query,
                            {"layout": "options", "budget": b,
                             "option_tokens": b.option_text_tokens,
-                            "truncated": [len(o) < len(t) for o, t in zip(opts, texts)]})
+                            "truncated": [len(o) < len(t) for o, t in zip(opts, texts, strict=False)]})
 
 
 @dataclass
@@ -121,12 +122,12 @@ class StatePacker:
                       - 6 * n) // max(1, n))     # ~6 tokens of JSON scaffolding each
         cut = [_truncate_to_tokens(t, per, self.token_counter) for t in texts]
         ids = [f"{self.id_prefix}{i}" for i in range(n)]
-        state = {"query": query, "candidates": dict(zip(ids, cut))}
+        state = {"query": query, "candidates": dict(zip(ids, cut, strict=False))}
         return PackedSlate(self.instructions, ids, state,
                            {"layout": "state", "budget": b,
                             "per_candidate_tokens": per,
                             "per_candidate_chars": [len(c) for c in cut],
-                            "truncated": [len(c) < len(t) for c, t in zip(cut, texts)]})
+                            "truncated": [len(c) < len(t) for c, t in zip(cut, texts, strict=False)]})
 
 
 def make_packer(layout: str = SlateLayout.OPTIONS, **kw) -> SlatePacker:

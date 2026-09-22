@@ -20,7 +20,7 @@ At M = 10 options that leaves **16 tokens of option text per option**. See
 from __future__ import annotations
 
 import json
-from typing import Sequence
+from collections.abc import Sequence
 
 __all__ = ["QTYPES", "QTYPE_NAMES", "serialize_state", "render_options",
            "build_sequence", "temp_bucket", "OPTION_TOKEN_CAP"]

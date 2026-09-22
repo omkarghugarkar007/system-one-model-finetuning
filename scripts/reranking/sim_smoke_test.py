@@ -13,12 +13,21 @@ this project assumed:
 
 So: stratify for ranking, anchor for scale. They fix different problems.
 """
-import sys, pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+import pathlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
 
 import numpy as np
-from systemone import (Anchor, AnchoredScorer, Controller, compute_frontier,
-                          expected_regret, ndcg_at_k, paired_bootstrap)
+
+from systemone.eval import ndcg_at_k, paired_bootstrap
+from systemone.reranking import (
+    Anchor,
+    AnchoredScorer,
+    Controller,
+    compute_frontier,
+    expected_regret,
+)
 
 ANCHOR_UTILS = np.linspace(-2.2, 2.2, 4)
 
@@ -48,8 +57,7 @@ def one_query(seed, n_anchors=4, stratify=True, n=100, k=10):
 
     scorer = AnchoredScorer(model, anchors, max_options=10,
                             n_anchors=n_anchors, stratify=stratify)
-    pool = scorer.score("Rank by relevance.", sigs, "the query",
-                        first_stage_order=np.argsort(-u))
+    pool = scorer.score("the query", sigs, first_stage_order=np.argsort(-u))
     return dict(
         anchored=ndcg_at_k(rel[pool.order], rel, k),
         naive=ndcg_at_k(rel[np.argsort(-pool.raw_logp)], rel, k),

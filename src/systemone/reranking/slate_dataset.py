@@ -39,7 +39,7 @@ class SlateExample:
     def n_options(self) -> int:
         return len(self.texts)
 
-    def permuted(self, rng: np.random.Generator) -> "SlateExample":
+    def permuted(self, rng: np.random.Generator) -> SlateExample:
         p = rng.permutation(self.n_options)
         return SlateExample(self.query_id, self.query, [self.texts[i] for i in p],
                             self.grades[p], self.anchor_utility[p],
@@ -180,7 +180,7 @@ class SlateDataset:
                 "candidates_per_slate": int((~examples[0].is_anchor).sum()),
                 "grade_mean": round(float(g.mean()), 3),
                 "grade_hist": {int(k): int(v) for k, v in
-                               zip(*np.unique(g, return_counts=True))},
+                               zip(*np.unique(g, return_counts=True), strict=False)},
                 "slates_with_a_positive": round(float(np.mean(
                     [(e.grades[~e.is_anchor] >= 2).any() for e in examples])), 3),
                 "difficulty": {d: diffs.count(d) / len(diffs) for d in set(diffs)}}
@@ -215,7 +215,7 @@ def collate_slates(examples, runtime, packer, qtype: str = "choice"):
     anchor = torch.zeros((n, kmax), dtype=torch.bool)
     util = torch.full((n, kmax), float("nan"))
 
-    for i, ((seq, mk, _), e) in enumerate(zip(built, keep)):
+    for i, ((seq, mk, _), e) in enumerate(zip(built, keep, strict=False)):
         ids[i, :len(seq)] = torch.tensor(seq)
         att[i, :len(seq)] = 1
         k = len(mk)

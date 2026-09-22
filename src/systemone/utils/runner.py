@@ -107,7 +107,7 @@ class Run:
 
     # --------------------------------------------------------------- manifest
     def _manifest(self) -> dict:
-        import torch                                         # noqa: PLC0415
+        import torch  # noqa: PLC0415
         env = {"python": platform.python_version(),
                "platform": platform.platform(),
                "numpy": np.__version__}

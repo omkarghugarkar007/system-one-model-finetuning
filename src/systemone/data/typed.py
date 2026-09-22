@@ -105,7 +105,7 @@ class TypedExample:
         t[self.label] = 1.0
         return t
 
-    def permuted(self, rng: np.random.Generator) -> "TypedExample":
+    def permuted(self, rng: np.random.Generator) -> TypedExample:
         """Shuffle option order. A no-op for ordinal questions, by design."""
         if self.question.ordinal:
             return self
@@ -130,7 +130,7 @@ class TypedExample:
 # ----------------------------------------------------------------- shorthands
 def choice(state, instructions, options, label=None, soft_label=None, **kw):
     """`options` is either {key: description} or a list of keys."""
-    crit = options if isinstance(options, dict) else {o: None for o in options}
+    crit = options if isinstance(options, dict) else dict.fromkeys(options)
     if isinstance(label, str):
         label = list(crit).index(label)
     return TypedExample(state, Question("choice", instructions, crit),
@@ -209,7 +209,7 @@ class TypedDataset:
             "option_tokens_kept_mean": round(float(np.mean(opt)), 1),
             "option_tokens_wanted_mean": round(float(np.mean(want)), 1),
             "option_text_lost_frac": round(
-                float(np.mean([a < b for a, b in zip(opt, want)])), 3),
+                float(np.mean([a < b for a, b in zip(opt, want, strict=False)])), 3),
             "option_shrink_fired_frac": round(
                 float(np.mean([b["option_shrink_fired"] for b in info])), 3),
             "instruction_tokens_mean": round(
@@ -268,7 +268,7 @@ def collate_typed(batch, tokenizer, dataset: TypedDataset):
     qtype = torch.zeros(n, dtype=torch.long)
     ordinal = torch.zeros(n, dtype=torch.bool)
 
-    for i, ((seq, mk, _), ex) in enumerate(zip(built, keep)):
+    for i, ((seq, mk, _), ex) in enumerate(zip(built, keep, strict=False)):
         ids[i, :len(seq)] = torch.tensor(seq)
         att[i, :len(seq)] = 1
         k = len(mk)

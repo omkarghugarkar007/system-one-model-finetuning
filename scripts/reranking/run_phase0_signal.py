@@ -27,15 +27,14 @@ import argparse
 
 import numpy as np
 
-from systemone.reranking.packing import OptionsPacker, StatePacker
+from systemone.eval import ndcg_at_k, paired_bootstrap
+from systemone.model import LayaRuntime
 from systemone.reranking.data import BM25Index, load_beir, make_signature_builder
 from systemone.reranking.data.signatures import signature_recall
-from systemone.eval import ndcg_at_k, paired_bootstrap
-from systemone.reranking.experiments.phase0_identifiability import (fit_additive,
-                                                             make_block_design)
-from systemone.utils.runner import Run
-from systemone.model import LayaRuntime
+from systemone.reranking.experiments.phase0_identifiability import fit_additive, make_block_design
+from systemone.reranking.packing import OptionsPacker, StatePacker
 from systemone.reranking.scorer import LayaScorer
+from systemone.utils.runner import Run
 
 
 def main():

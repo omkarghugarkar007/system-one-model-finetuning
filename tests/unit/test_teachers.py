@@ -4,10 +4,14 @@ import json
 import numpy as np
 import pytest
 
+from systemone.teachers import (
+    CachedTeacher,
+    InSessionTeacher,
+    SimulatedTeacher,
+    TeacherPending,
+    request_digest,
+)
 from systemone.teachers.protocols import RUBRIC_4LEVEL, TeacherVerdict, expected_grade
-from systemone.teachers import (CachedTeacher, InSessionTeacher,
-                                          SimulatedTeacher, TeacherPending,
-                                          request_digest)
 
 
 def test_verdict_rejects_rows_that_do_not_sum_to_one():

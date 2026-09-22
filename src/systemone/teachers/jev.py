@@ -29,7 +29,7 @@ import os
 import time
 import urllib.error
 import urllib.request
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -203,7 +203,7 @@ class JevTeacher:
         q: dict = {"type": qtype, "instructions": instructions}
         if qtype == "choice":
             crit = (criteria if isinstance(criteria, dict)
-                    else {c: None for c in (criteria or [])})
+                    else dict.fromkeys(criteria or []))
             if not 2 <= len(crit) <= self.MAX_OPTIONS:
                 raise ValueError(f"choice takes 2-{self.MAX_OPTIONS} options")
             q["criteria"] = crit

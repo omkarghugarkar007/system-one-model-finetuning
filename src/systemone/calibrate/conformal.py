@@ -47,7 +47,7 @@ class ConformalIntervals:
 
     @classmethod
     def fit(cls, u_true, u_hat, sigma, alpha: float = 0.1,
-            sigma_floor: float = 1e-6) -> "ConformalIntervals":
+            sigma_floor: float = 1e-6) -> ConformalIntervals:
         u_true = np.asarray(u_true, dtype=float).ravel()
         u_hat = np.asarray(u_hat, dtype=float).ravel()
         sigma = np.asarray(sigma, dtype=float).ravel()

@@ -25,13 +25,13 @@ This keeps hand grading on exactly the same interface as Jev, so the ablation
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import numpy as np
 
-from .protocols import RUBRIC_4LEVEL, TeacherVerdict
 from .base import request_digest
+from .protocols import RUBRIC_4LEVEL, TeacherVerdict
 
 __all__ = ["InSessionTeacher", "TeacherPending"]
 

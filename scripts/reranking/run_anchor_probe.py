@@ -22,12 +22,12 @@ import argparse
 
 import numpy as np
 
-from systemone.reranking.packing import OptionsPacker, StatePacker
-from systemone.reranking.data import BM25Index, load_beir, make_signature_builder
-from systemone.utils.runner import Run
 from systemone.model import LayaRuntime
-from systemone.reranking.scorer import LayaScorer
 from systemone.reranking.anchor_pool import DEFAULT_TEMPLATES, templated_anchors
+from systemone.reranking.data import BM25Index, load_beir, make_signature_builder
+from systemone.reranking.packing import OptionsPacker, StatePacker
+from systemone.reranking.scorer import LayaScorer
+from systemone.utils.runner import Run
 
 
 def main():
@@ -52,6 +52,7 @@ def main():
         rt = LayaRuntime(args.model, apply_temperature=False)
         if args.checkpoint:
             import torch
+
             from systemone.model.heads import FrontierRankModel
             from systemone.train.trainer_ranking import TrainedScorer
             model = FrontierRankModel(rt.model, n_levels=4)

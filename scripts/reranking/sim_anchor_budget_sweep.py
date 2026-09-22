@@ -7,7 +7,10 @@ have used:  real candidates per slate = M - A,  slates per query = ceil(N/(M-A))
 
 Question: what (M, A) maximises nDCG@10 per forward pass?
 """
-import numpy as np, math
+import math
+
+import numpy as np
+
 RNG = np.random.default_rng(20260921)
 
 def ndcg_at_k(rs, ideal, k=10):

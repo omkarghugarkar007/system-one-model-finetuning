@@ -134,9 +134,9 @@ class CompositeRankingLoss(torch.nn.Module):
                  w_ord=0.5, w_cal=1.0, w_anchor=1.0, w_anchor_mono=0.5,
                  tau=1.0, n_levels=4):
         super().__init__()
-        self.w = dict(point=w_point, pair=w_pair, list=w_list, kd=w_kd,
-                      ord=w_ord, cal=w_cal, anchor=w_anchor,
-                      anchor_mono=w_anchor_mono)
+        self.w = {"point": w_point, "pair": w_pair, "list": w_list, "kd": w_kd,
+                      "ord": w_ord, "cal": w_cal, "anchor": w_anchor,
+                      "anchor_mono": w_anchor_mono}
         self.tau, self.n_levels = tau, n_levels
 
     def forward(self, *, slate_logits, rel, mask=None,

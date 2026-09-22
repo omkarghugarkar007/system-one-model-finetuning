@@ -105,7 +105,7 @@ def make_block_design(probe_grades, slate_size: int = 10, n_slates: int = 60,
     n = g.size
     by_grade = {int(v): np.flatnonzero(g == v) for v in np.unique(g)}
     slates = []
-    for k in range(n_slates):
+    for _k in range(n_slates):
         if rng.random() < homogeneous_frac:
             pool = by_grade[int(rng.choice(list(by_grade)))]
             if pool.size < slate_size:
@@ -146,11 +146,11 @@ def fit_additive(design: BlockDesign, logp: list[np.ndarray]) -> AdditiveFit:
     *differences* are ever interpreted.
     """
     rows_p, rows_s, y = [], [], []
-    for k, (members, lp) in enumerate(zip(design.slates, logp)):
+    for k, (members, lp) in enumerate(zip(design.slates, logp, strict=False)):
         lp = np.asarray(lp, dtype=float)
         if lp.size != len(members):
             raise ValueError(f"slate {k}: {lp.size} log-probs for {len(members)} members")
-        for i, v in zip(members, lp):
+        for i, v in zip(members, lp, strict=False):
             rows_p.append(i)
             rows_s.append(k)
             y.append(v)
@@ -186,7 +186,7 @@ def order_noise_floor(logp_by_perm: list[np.ndarray],
     """
     n = len(perms[0])
     vals = np.full((len(perms), n), np.nan)
-    for r, (lp, perm) in enumerate(zip(logp_by_perm, perms)):
+    for r, (lp, perm) in enumerate(zip(logp_by_perm, perms, strict=False)):
         inv = np.empty_like(perm)
         inv[perm] = np.arange(n)
         vals[r] = np.asarray(lp)[inv]
@@ -396,7 +396,7 @@ def cross_slate_scale(design: BlockDesign, logp: list[np.ndarray],
     truth = np.asarray(truth, dtype=float)
 
     naive_v, cal_v, truth_v, resid, slopes = [], [], [], [], []
-    for members, lp in zip(design.slates, logp):
+    for members, lp in zip(design.slates, logp, strict=False):
         members = np.asarray(members)
         lp = np.asarray(lp, dtype=float)
         a_pos = [j for j, m in enumerate(members) if m in anchor_set]

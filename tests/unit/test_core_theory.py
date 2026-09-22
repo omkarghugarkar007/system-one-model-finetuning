@@ -1,8 +1,17 @@
-import numpy as np, pytest
-from systemone.reranking import (AnchorCalibrator, Anchor, AnchoredScorer, Controller,
-                               build_slates, compute_frontier, expected_regret,
-                               fit_slate, slates_per_query)
+import numpy as np
+import pytest
+
 from systemone.eval import ndcg_at_k, recall_at_k
+from systemone.reranking import (
+    Anchor,
+    AnchoredScorer,
+    Controller,
+    build_slates,
+    compute_frontier,
+    expected_regret,
+    fit_slate,
+    slates_per_query,
+)
 
 
 def test_shift_recovery_is_exact_without_noise():
@@ -75,7 +84,7 @@ def test_scorer_end_to_end_is_globally_comparable():
     u = rng.normal(0, 1.5, 60)
     sigs = [f"c{i}" for i in range(60)]
     anchors = [Anchor(f"a{j}", v) for j, v in enumerate(np.linspace(-2.2, 2.2, 4))]
-    table = dict(zip(sigs, u)) | {a.text: a.utility for a in anchors}
+    table = dict(zip(sigs, u, strict=False)) | {a.text: a.utility for a in anchors}
 
     class M:
         def choice_logprobs(self, instr, options, state):
