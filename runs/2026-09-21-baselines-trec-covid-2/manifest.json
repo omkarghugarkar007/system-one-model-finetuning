@@ -1,0 +1,29 @@
+{
+  "name": "baselines",
+  "status": "ok",
+  "git_commit": "3148c6d-dirty",
+  "started": 1789996332.407531,
+  "wall_seconds": 61.7,
+  "config": {
+    "dataset": "trec-covid",
+    "queries": 4,
+    "depth": 100,
+    "k": 10,
+    "relevant_at": 1,
+    "laya": "data/cache/laya",
+    "checkpoint": "runs/2026-09-21-phase1-train-nfcorpus-to-trec-covid-2/checkpoint.pt",
+    "minilm": "data/cache/minilm-l6",
+    "qwen": "data/cache/qwen3-rerank-0.6b",
+    "doc_chars": 2000,
+    "skip_qwen": true,
+    "seed": 0
+  },
+  "env": {
+    "python": "3.12.13",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "numpy": "2.5.3",
+    "torch": "2.14.0",
+    "mps": true,
+    "cuda": false
+  }
+}

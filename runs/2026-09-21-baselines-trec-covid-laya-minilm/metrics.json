@@ -1,0 +1,79 @@
+{
+  "minilm_throughput": {
+    "pairs": 3000,
+    "total_ms": 17447.6,
+    "ms_per_pair": 5.816,
+    "pairs_per_s": 171.9,
+    "device": "mps"
+  },
+  "results": {
+    "BM25 (first stage)": {
+      "ndcg10": 0.567170879131383,
+      "recall10": 0.16566085331336505,
+      "mrr10": 0.8575396825396826,
+      "params_M": 0.0,
+      "ms_per_query": 0.0,
+      "note": "the floor"
+    },
+    "MiniLM-L6 cross-encoder": {
+      "ndcg10": 0.7196690448349033,
+      "recall10": 0.23796950110619888,
+      "mrr10": 0.8288888888888888,
+      "params_M": 22.7,
+      "ms_per_query": 617.5992647806803,
+      "note": "100 passes/query",
+      "ece_raw": 0.3256,
+      "ece_cal": 0.1916,
+      "brier_cal": 0.2145,
+      "temperature": 4.864,
+      "mean_p": 0.6481
+    },
+    "Laya base (anchored)": {
+      "ndcg10": 0.41332866158890874,
+      "recall10": 0.11352873744635825,
+      "mrr10": 0.6705555555555555,
+      "params_M": 421.3,
+      "ms_per_query": 2572.0075289408364,
+      "note": "no ordinal head -> no P(relevant) at all"
+    },
+    "Laya tuned (anchored)": {
+      "ndcg10": 0.6228929022225737,
+      "recall10": 0.18983479171261022,
+      "mrr10": 0.864484126984127,
+      "params_M": 422.3,
+      "ms_per_query": 4474.358971913655,
+      "note": "CORAL head gives a real P(relevant)",
+      "ece_raw": 0.2188,
+      "ece_cal": 0.1111,
+      "brier_cal": 0.2382,
+      "temperature": 2.299,
+      "mean_p": 0.2458
+    }
+  },
+  "vs_bm25": {
+    "MiniLM-L6 cross-encoder": {
+      "delta": 0.1524981657035205,
+      "ci": [
+        0.06746955630960215,
+        0.23966155854320176
+      ],
+      "p": 0.0
+    },
+    "Laya tuned (anchored)": {
+      "delta": 0.0557220230911909,
+      "ci": [
+        -0.008927472431531882,
+        0.11923597650025171
+      ],
+      "p": 0.088
+    },
+    "Laya base (anchored)": {
+      "delta": -0.15384221754247412,
+      "ci": [
+        -0.21562123201937655,
+        -0.09391210738189026
+      ],
+      "p": 0.0
+    }
+  }
+}

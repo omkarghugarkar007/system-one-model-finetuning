@@ -1,0 +1,38 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+BM25Index(171,332 docs, 165,572 terms, k1=0.9, b=0.4, stem=True, avgdl=121.0)
+30 queries, depth 100, relevant = grade >= 1, 2000 chars per doc, identical for every system
+systems: ['laya', 'minilm']
+
+Systems
+=======
+  BM25 (first stage)         nDCG@10=0.5672  ECE=n/a
+  MiniLM-L6 cross-encoder    nDCG@10=0.7197  ECE=0.3256->0.1916  618 ms/q
+  Laya base (anchored)       nDCG@10=0.4133  ECE=n/a  2572 ms/q
+  Laya tuned (anchored)      nDCG@10=0.6229  ECE=0.2188->0.1111  4474 ms/q
+
+Quality and calibration, identical pool
+=======================================
+system                       params   nDCG@10    R@10  MRR@10  ECE raw  ECE cal      T   Brier    ms/q
+--------------------------------------------------------------------------------------------------------
+MiniLM-L6 cross-encoder        22.7    0.7197  0.2380  0.8289   0.3256   0.1916   4.86  0.2145     618
+Laya tuned (anchored)         422.3    0.6229  0.1898  0.8645   0.2188   0.1111   2.30  0.2382    4474
+BM25 (first stage)              0.0    0.5672  0.1657  0.8575      nan      nan    nan     nan       0
+Laya base (anchored)          421.3    0.4133  0.1135  0.6706      nan      nan    nan     nan    2572
+
+ECE raw = as shipped, on a held-out half of the queries.
+ECE cal = after a one-parameter temperature fitted on the other half.
+The second is what you would deploy; the first largely measures
+whether a model's training corpus had a similar positive rate.
+
+Paired bootstrap vs BM25, 10k resamples
+=======================================
+system                      delta nDCG@10                 95% CI        p
+--------------------------------------------------------------------------
+MiniLM-L6 cross-encoder           +0.1525 [ +0.0675, +0.2397]   0.0000
+Laya tuned (anchored)             +0.0557 [ -0.0089, +0.1192]   0.0880
+Laya base (anchored)              -0.1538 [ -0.2156, -0.0939]   0.0000
+
+  probabilities saved to runs/probs_minilm_laya.npz

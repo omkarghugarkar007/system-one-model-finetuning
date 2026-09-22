@@ -1,0 +1,48 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+BM25Index(171,332 docs, 165,572 terms, k1=0.9, b=0.4, stem=True, avgdl=121.0)
+3 queries, depth 20, relevant = grade >= 1
+truncation: 2000 chars, identical for every system
+
+Systems
+=======
+  BM25 (first stage)         nDCG@10=0.6586  ECE=n/a     
+  MiniLM-L6 cross-encoder    nDCG@10=0.6034  ECE=0.4460  216 ms/q
+  Laya base (anchored)       nDCG@10=0.4753  ECE=n/a     536 ms/q
+  Laya tuned (anchored)      nDCG@10=0.8412  ECE=0.2392  987 ms/q
+  Qwen3-Reranker-0.6B        nDCG@10=0.9269  ECE=0.2533  32617 ms/q
+
+Quality and calibration, identical pool
+=======================================
+system                       params   nDCG@10    R@10  MRR@10     ECE   Brier  ms/query
+--------------------------------------------------------------------------------------------
+Qwen3-Reranker-0.6B           596.0    0.9269  0.8472  1.0000  0.2533  0.2199     32617
+Laya tuned (anchored)         422.3    0.8412  0.8028  1.0000  0.2392  0.3103       987
+BM25 (first stage)              0.0    0.6586  0.7000  0.7500     nan     nan         0
+MiniLM-L6 cross-encoder        22.7    0.6034  0.5944  0.6667  0.4460  0.4107       216
+Laya base (anchored)          421.3    0.4753  0.5917  0.7778     nan     nan       536
+
+Paired bootstrap vs BM25, 10k resamples
+=======================================
+system                      delta nDCG@10                 95% CI        p
+--------------------------------------------------------------------------
+Qwen3-Reranker-0.6B               +0.2683 [ +0.1341, +0.4854]   0.0000
+Laya tuned (anchored)             +0.1826 [ -0.1131, +0.3427]   0.0708
+MiniLM-L6 cross-encoder           -0.0552 [ -0.2050, +0.1652]   0.5184
+Laya base (anchored)              -0.1833 [ -0.3958, +0.0805]   0.0772
+
+Read
+====
+  best quality     : Qwen3-Reranker-0.6B (0.9269)
+  best calibration : Laya tuned (anchored) (ECE 0.2392)
+  base rate (P(relevant) in the pool): 0.45
+
+  The decision this table informs: FrontierRank does not need the
+  best reranker, it needs a CALIBRATED one, because expected-regret
+  arithmetic runs on probabilities and not on scores. If Laya loses
+  quality but wins calibration, the architecture stands and the
+  question becomes what the quality gap costs. If it loses both,
+  a pretrained cross-encoder is the better substrate and plan.md's
+  own Part XI decision tree already says to use one.

@@ -1,0 +1,77 @@
+{
+  "minilm_throughput": {
+    "pairs": 400,
+    "total_ms": 2331.9,
+    "ms_per_pair": 5.83,
+    "pairs_per_s": 171.5,
+    "device": "mps"
+  },
+  "results": {
+    "BM25 (first stage)": {
+      "ndcg10": 0.351652649318484,
+      "recall10": 0.16855571964267613,
+      "mrr10": 0.6041666666666666,
+      "params_M": 0.0,
+      "ms_per_query": 0.0,
+      "note": "the floor"
+    },
+    "MiniLM-L6 cross-encoder": {
+      "ndcg10": 0.3873401290189146,
+      "recall10": 0.18578884883232707,
+      "mrr10": 0.5916666666666667,
+      "params_M": 22.7,
+      "ms_per_query": 607.6322793960571,
+      "note": "pointwise, 100 passes/query",
+      "ece": 0.4052,
+      "brier": 0.3891,
+      "mean_p": 0.5652,
+      "base_rate": 0.3375
+    },
+    "Laya base (anchored)": {
+      "ndcg10": 0.23653415688958207,
+      "recall10": 0.13213670387583432,
+      "mrr10": 0.4583333333333333,
+      "params_M": 421.3,
+      "ms_per_query": 2387.6582384109497,
+      "note": "no ordinal head -> no P(relevant) at all"
+    },
+    "Laya tuned (anchored)": {
+      "ndcg10": 0.45025136669498445,
+      "recall10": 0.21228155902068946,
+      "mrr10": 0.8333333333333334,
+      "params_M": 422.3,
+      "ms_per_query": 3960.402190685272,
+      "note": "CORAL head gives a real P(relevant)",
+      "ece": 0.1056,
+      "brier": 0.2254,
+      "mean_p": 0.2593,
+      "base_rate": 0.3375
+    }
+  },
+  "vs_bm25": {
+    "Laya tuned (anchored)": {
+      "delta": 0.09859871737650044,
+      "ci": [
+        -0.0832082685043263,
+        0.24998467754867482
+      ],
+      "p": 0.3324
+    },
+    "MiniLM-L6 cross-encoder": {
+      "delta": 0.03568747970043062,
+      "ci": [
+        -0.09971549762499397,
+        0.25110221876042715
+      ],
+      "p": 0.6448
+    },
+    "Laya base (anchored)": {
+      "delta": -0.11511849242890192,
+      "ci": [
+        -0.3410276533537263,
+        0.00790296104702521
+      ],
+      "p": 0.2472
+    }
+  }
+}

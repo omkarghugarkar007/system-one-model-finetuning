@@ -1,0 +1,15 @@
+
+Setup
+=====
+Dataset(trec-covid/test: 171,332 docs, 50 queries, 66,336 judgements, grades 0-2)
+BM25Index(171,332 docs, 165,572 terms, k1=0.9, b=0.4, stem=True, avgdl=121.0)
+4 queries, depth 100, relevant = grade >= 1
+truncation: 2000 chars, identical for every system
+
+Systems
+=======
+  BM25 (first stage)         nDCG@10=0.3517  ECE=n/a     
+  MiniLM-L6 cross-encoder    nDCG@10=0.3873  ECE=0.4052  790 ms/q
+  Laya base (anchored)       nDCG@10=0.2365  ECE=n/a     9407 ms/q
+
+FAILED: RuntimeError: selected index k out of range

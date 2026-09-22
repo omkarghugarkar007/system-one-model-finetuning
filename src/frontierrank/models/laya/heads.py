@@ -113,8 +113,13 @@ class FrontierRankModel(nn.Module):
         p = torch.softmax(slate_logits.detach(), -1)
         k = marker_mask.sum(-1).clamp(min=2).float()
         ent = -(p * torch.log(p.clamp_min(1e-9))).sum(-1) / torch.log(k)
-        top2 = p.topk(2, -1).values
-        feats = torch.stack([top2[:, 0], top2[:, 0] - top2[:, 1], ent, k / 255.0], -1)
+        # a single-option slate is legitimate -- the ordinal head is pointwise
+        # and gets probed one candidate at a time -- so topk(2) must not assume
+        # a second option exists
+        n_opt = p.shape[-1]
+        top2 = p.topk(min(2, n_opt), -1).values
+        margin = (top2[:, 0] - top2[:, 1]) if n_opt >= 2 else top2[:, 0]
+        feats = torch.stack([top2[:, 0], margin, ent, k / 255.0], -1)
         act_logits = self.base.act_head(torch.cat([pooled.float(), feats], -1))
 
         return {"slate_logits": slate_logits,

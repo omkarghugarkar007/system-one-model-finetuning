@@ -1,0 +1,104 @@
+{
+  "minilm_throughput": {
+    "pairs": 60,
+    "total_ms": 630.5,
+    "ms_per_pair": 10.508,
+    "pairs_per_s": 95.2,
+    "device": "mps"
+  },
+  "qwen_throughput": {
+    "pairs": 60,
+    "total_ms": 96199.2,
+    "ms_per_pair": 1603.32,
+    "pairs_per_s": 0.6,
+    "device": "mps"
+  },
+  "results": {
+    "BM25 (first stage)": {
+      "ndcg10": 0.6586012380286341,
+      "recall10": 0.7000000000000001,
+      "mrr10": 0.75,
+      "params_M": 0.0,
+      "ms_per_query": 0.0,
+      "note": "the floor"
+    },
+    "MiniLM-L6 cross-encoder": {
+      "ndcg10": 0.6033596296962805,
+      "recall10": 0.5944444444444444,
+      "mrr10": 0.6666666666666666,
+      "params_M": 22.7,
+      "ms_per_query": 216.38027826944986,
+      "note": "pointwise, 100 passes/query",
+      "ece": 0.446,
+      "brier": 0.4107,
+      "mean_p": 0.8294,
+      "base_rate": 0.45
+    },
+    "Laya base (anchored)": {
+      "ndcg10": 0.47528736849449,
+      "recall10": 0.5916666666666667,
+      "mrr10": 0.7777777777777777,
+      "params_M": 421.3,
+      "ms_per_query": 535.95503171285,
+      "note": "no ordinal head -> no P(relevant) at all"
+    },
+    "Laya tuned (anchored)": {
+      "ndcg10": 0.8412357192110541,
+      "recall10": 0.8027777777777777,
+      "mrr10": 1.0,
+      "params_M": 422.3,
+      "ms_per_query": 987.3276551564535,
+      "note": "CORAL head gives a real P(relevant)",
+      "ece": 0.2392,
+      "brier": 0.3103,
+      "mean_p": 0.2711,
+      "base_rate": 0.45
+    },
+    "Qwen3-Reranker-0.6B": {
+      "ndcg10": 0.9268721168988088,
+      "recall10": 0.8472222222222222,
+      "mrr10": 1.0,
+      "params_M": 596.0,
+      "ms_per_query": 32616.75238609314,
+      "note": "first-token yes/no logits",
+      "ece": 0.2533,
+      "brier": 0.2199,
+      "mean_p": 0.656,
+      "base_rate": 0.45
+    }
+  },
+  "vs_bm25": {
+    "Qwen3-Reranker-0.6B": {
+      "delta": 0.2682708788701747,
+      "ci": [
+        0.13405239904119437,
+        0.4853753333647197
+      ],
+      "p": 0.0
+    },
+    "Laya tuned (anchored)": {
+      "delta": 0.18263448118242007,
+      "ci": [
+        -0.11309690311957354,
+        0.3426591273004178
+      ],
+      "p": 0.0708
+    },
+    "MiniLM-L6 cross-encoder": {
+      "delta": -0.05524160833235359,
+      "ci": [
+        -0.20499514578749167,
+        0.16521893392968467
+      ],
+      "p": 0.5184
+    },
+    "Laya base (anchored)": {
+      "delta": -0.1833138695341441,
+      "ci": [
+        -0.3958458609213984,
+        0.08047168709678842
+      ],
+      "p": 0.0772
+    }
+  }
+}

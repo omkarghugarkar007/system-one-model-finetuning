@@ -1,0 +1,9 @@
+{
+  "minilm_throughput": {
+    "pairs": 400,
+    "total_ms": 3055.8,
+    "ms_per_pair": 7.64,
+    "pairs_per_s": 130.9,
+    "device": "mps"
+  }
+}
