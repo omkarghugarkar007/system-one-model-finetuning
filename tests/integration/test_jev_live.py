@@ -8,8 +8,8 @@ import pathlib
 import numpy as np
 import pytest
 
-from frontierrank.models.protocols import RUBRIC_4LEVEL
-from frontierrank.models.teachers import CachedTeacher, JevTeacher
+from systemone.teachers.protocols import RUBRIC_4LEVEL
+from systemone.teachers import CachedTeacher, JevTeacher
 
 pytestmark = [pytest.mark.network, pytest.mark.slow]
 

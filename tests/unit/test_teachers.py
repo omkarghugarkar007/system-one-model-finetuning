@@ -4,8 +4,8 @@ import json
 import numpy as np
 import pytest
 
-from frontierrank.models.protocols import RUBRIC_4LEVEL, TeacherVerdict, expected_grade
-from frontierrank.models.teachers import (CachedTeacher, InSessionTeacher,
+from systemone.teachers.protocols import RUBRIC_4LEVEL, TeacherVerdict, expected_grade
+from systemone.teachers import (CachedTeacher, InSessionTeacher,
                                           SimulatedTeacher, TeacherPending,
                                           request_digest)
 

@@ -1,22 +1,25 @@
 [project]
-name = "frontierrank"
-version = "0.2.0"
-description = "Reranking that spends compute in proportion to ranking regret"
+name = "systemone"
+version = "0.3.0"
+description = "A recipe for fine-tuning System One models (typed decisions with calibrated probabilities)"
+readme = "README.md"
 requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+keywords = ["system-one", "typed-decisions", "calibration", "fine-tuning",
+            "laya", "jev", "modernbert", "reranking"]
 dependencies = ["numpy>=1.26", "pyyaml>=6.0"]
 
 [project.optional-dependencies]
-# the model layer: Laya is ModernBERT-large + a from-scratch decision head
-model = ["torch>=2.4", "transformers>=4.48", "safetensors>=0.4", "huggingface_hub>=0.25"]
-# retrieval + indexing for the data layer
-data  = ["datasets>=2.19", "rank-bm25>=0.2.2", "sentence-transformers>=3.0", "ir-datasets>=0.5"]
-# statistics, fitted controllers, plots
-eval  = ["scipy>=1.11", "lightgbm>=4.0", "matplotlib>=3.8"]
-dev   = ["pytest>=8.0", "pytest-xdist>=3.5", "ruff>=0.6"]
-all   = ["frontierrank[model,data,eval,dev]"]
-
-[project.scripts]
-fr = "frontierrank.cli:main"
+# everything you need to fine-tune. This is the one most people want.
+train = ["torch>=2.4", "transformers>=4.48", "safetensors>=0.4",
+         "huggingface_hub>=0.25"]
+# the reranking worked example: corpora, BM25, baselines
+example = ["datasets>=2.19", "sentence-transformers>=3.0", "snowballstemmer>=2.2",
+           "scipy>=1.11"]
+# statistics and plots for the research
+research = ["scipy>=1.11", "lightgbm>=4.0", "matplotlib>=3.8"]
+dev = ["pytest>=8.0", "pytest-xdist>=3.5", "ruff>=0.6"]
+all = ["systemone[train,example,research,dev]"]
 
 [build-system]
 requires = ["setuptools>=68"]

@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from frontierrank.calibration import (ConformalIntervals, CoverageMonitor,
+from systemone.calibrate import (ConformalIntervals, CoverageMonitor,
                                       TemperatureMap, coverage_by_group,
                                       ece_by_bucket, fit_temperature)
 

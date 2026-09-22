@@ -2,10 +2,10 @@
 import numpy as np
 import pytest
 
-from frontierrank.core.budget import (DEFAULT_BUDGET, SlateLayout,
+from systemone.model.budget import (DEFAULT_BUDGET, SlateLayout,
                                       max_options_for_option_text,
                                       option_tokens_available, plan_slate_budget)
-from frontierrank.core.packing import OptionsPacker, StatePacker
+from systemone.reranking.packing import OptionsPacker, StatePacker
 
 
 def test_the_number_that_drove_the_design():

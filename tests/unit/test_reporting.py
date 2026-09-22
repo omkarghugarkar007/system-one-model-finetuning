@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from frontierrank.reporting import (Point, frontier_table, improvement_over,
+from systemone.reranking.reporting import (Point, frontier_table, improvement_over,
                                     pareto_front)
 
 

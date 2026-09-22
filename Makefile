@@ -1,54 +1,59 @@
-.PHONY: help test lint budget sim phase0 phase0-signal phase0-anchors data clean
+.PHONY: help install weights quickstart test lint budget example-data findings clean
 PY := .venv/bin/python
 
-help:
-	@grep -E '^[a-z0-9-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/' | expand -t22
+help:            ## show this
+	@grep -E '^[a-z0-9-]+:.*?## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/' | expand -t20
+
+# ---------------------------------------------------------------- the recipe
+install:         ## install the package and training deps
+	uv venv --python 3.12 .venv || true
+	uv pip install -e '.[train,dev]'
+
+weights:         ## fetch the Laya checkpoint (~1.7 GB)
+	$(PY) -c "from huggingface_hub import snapshot_download as d; \
+	d('convaiinnovations/laya', local_dir='data/cache/laya', \
+	allow_patterns=['model.safetensors','rl_agent_config.json','encoder/*','tokenizer/*'])"
+
+quickstart:      ## fine-tune end to end in ~1 minute. START HERE.
+	$(PY) examples/01_quickstart.py
+
+budget:          ## the token arithmetic that governs question design
+	$(PY) -m systemone.model.budget
+	@echo
+	$(PY) -c "from transformers import AutoTokenizer as T; \
+	from systemone.model.budget_probe import probe_table; \
+	print(probe_table(T.from_pretrained('data/cache/laya/tokenizer')))"
 
 test:            ## unit tests: seconds, no weights, no network
-	$(PY) -m pytest tests/ -q
+	$(PY) -m pytest tests/unit -q
 
-lint:            ## ruff
-	.venv/bin/ruff check src tests scripts
+lint:
+	.venv/bin/ruff check src tests examples scripts
 
-budget:          ## the token arithmetic that drove the slate design
-	$(PY) -m frontierrank.core.budget
-	@echo
-	$(PY) -c "from transformers import AutoTokenizer as T; from frontierrank.models.laya.budget_probe import probe_table; print(probe_table(T.from_pretrained('data/cache/laya/tokenizer')))"
-
-sim:             ## the numpy-only simulation from plan.md Part VIII
-	$(PY) scripts/sim_smoke_test.py
-
-phase0:          ## THE GATE: is c_S a per-slate shift on real text?
-	$(PY) scripts/run_phase0.py --dataset trec-covid --queries 12
-
-phase0-signal:   ## does the checkpoint have signal, or did we starve it?
-	$(PY) scripts/run_phase0_signal.py --dataset trec-covid --queries 10
-
-phase0-anchors:  ## falsification test 4: does anchoring buy the global scale?
-	$(PY) scripts/run_phase0_anchors.py --dataset trec-covid --queries 10
-
-data:            ## BEIR corpora into data/raw
+# ------------------------------------------------- the reranking worked example
+example-data:    ## BEIR corpora for the reranking example
 	@mkdir -p data/raw
 	@for ds in nfcorpus scifact trec-covid; do \
 	  test -d data/raw/$$ds || ( echo "-- $$ds" && \
 	  curl -s -o /tmp/$$ds.zip "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/$$ds.zip" && \
 	  unzip -q -o /tmp/$$ds.zip -d data/raw && rm /tmp/$$ds.zip ); done
-	@echo "ready:" && ls data/raw
+	@ls data/raw
 
-clean:           ## drop run artifacts, keep manifests and metrics
+example-train:   ## reproduce the reranking fine-tune
+	$(PY) scripts/reranking/run_phase1_train.py --train nfcorpus --eval trec-covid
+
+example-baselines: ## the honest competition: MiniLM, Qwen3, BM25
+	$(PY) scripts/reranking/run_baselines.py --only minilm,laya --queries 30
+	$(PY) scripts/reranking/run_baselines.py --only qwen --queries 30
+
+example-gate:    ## the Phase 0 identifiability gate
+	$(PY) scripts/reranking/run_phase0.py --dataset trec-covid --queries 12
+
+example-first-stage: ## validate BM25 against published BEIR numbers
+	$(PY) scripts/reranking/check_first_stage.py
+
+findings:        ## what we measured, including what did not work
+	@echo "see FINDINGS.md, RECIPE.md and docs/ROADMAP.md"
+
+clean:
 	find runs -name '*.npz' -delete
-
-phase0-signal-full: ## F7 at full scale with paired bootstrap CIs
-	$(PY) scripts/run_phase0_signal.py --dataset trec-covid --queries 50 --slates-per-query 30
-
-anchor-probe:    ## are the templated pivots actually pivots?
-	$(PY) scripts/run_anchor_probe.py --dataset trec-covid --queries 20
-
-train:           ## Phase 1: fine-tune on nfcorpus, evaluate on trec-covid
-	$(PY) scripts/run_phase1_train.py --train nfcorpus --eval trec-covid
-
-check-first-stage: ## validate BM25 against published BEIR numbers
-	$(PY) scripts/check_first_stage.py
-
-frontier:        ## render the quality/cost Pareto frontier
-	$(PY) -c "from frontierrank.reporting import *; print('use reporting.Point + plot_frontier with measured runs')"

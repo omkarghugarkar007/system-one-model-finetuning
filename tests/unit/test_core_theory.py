@@ -1,8 +1,8 @@
 import numpy as np, pytest
-from frontierrank.core import (AnchorCalibrator, Anchor, AnchoredScorer, Controller,
+from systemone.reranking import (AnchorCalibrator, Anchor, AnchoredScorer, Controller,
                                build_slates, compute_frontier, expected_regret,
                                fit_slate, slates_per_query)
-from frontierrank.eval import ndcg_at_k, recall_at_k
+from systemone.eval import ndcg_at_k, recall_at_k
 
 
 def test_shift_recovery_is_exact_without_noise():

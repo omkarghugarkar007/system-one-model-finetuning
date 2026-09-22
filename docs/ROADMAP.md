@@ -1,5 +1,10 @@
 # Roadmap
 
+The repo has been reframed as a **recipe for fine-tuning System One models**
+([RECIPE.md](../RECIPE.md)); the reranking work below is now the worked example
+that produced it. Phases 0–1 are done and published; 2–4 are built but not
+measured.
+
 The tracker. One row per task, tied to the phase gate it serves, the command
 that runs it, and the finding it produces. `plan.md` Part X defines the gates;
 this file records progress against them.
@@ -68,6 +73,20 @@ That is also what production would use.
 | [ ] | **Re-run the whole Phase 0 battery on the tuned checkpoint** | `make phase0-all` | this is the real T4 test |
 
 ---
+
+## Recipe (the published artifact)
+
+| | Task | Where |
+|---|---|---|
+| [x] | Generic typed-decision API (choice/score/noul) | `systemone.data.typed` |
+| [x] | Generic objective with ordinal handling | `systemone.train.losses.TypedDecisionLoss` |
+| [x] | Generic trainer with preflight budget check | `systemone.train.trainer` |
+| [x] | Sliced evaluation (accuracy, ECE, Brier, AURC) | `systemone.eval.typed` |
+| [x] | One-minute end-to-end quickstart | `examples/01_quickstart.py` |
+| [x] | The cookbook | `RECIPE.md` |
+| [ ] | Second example: distillation from a teacher | `examples/02_*.py` |
+| [ ] | Second example: bring-your-own JSONL | `examples/03_*.py` |
+| [ ] | Confirm the recipe on a non-reranking task | — |
 
 ## Phase 2 — the frontier
 

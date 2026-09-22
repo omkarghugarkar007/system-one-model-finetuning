@@ -2,10 +2,10 @@
 import numpy as np
 import pytest
 
-from frontierrank.core import Anchor, AnchoredScorer, Controller
-from frontierrank.core.cascade import Cascade, fuse_teacher
-from frontierrank.core.frontier import expected_regret
-from frontierrank.models.teachers import SimulatedTeacher
+from systemone.reranking import Anchor, AnchoredScorer, Controller
+from systemone.reranking.cascade import Cascade, fuse_teacher
+from systemone.reranking.frontier import expected_regret
+from systemone.teachers import SimulatedTeacher
 
 
 # ------------------------------------------------------------------- regret
