@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 470" width="980" height="470" font-family="ui-sans-serif,-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+  <rect width="980" height="470" fill="#fbfbfd"/>
+  <style>
+    .t    { font-size:12.5px; fill:#1f2430 }
+    .b    { font-size:13px; fill:#1f2430; font-weight:600 }
+    .lbl  { font-size:10.5px; fill:#6b7280; letter-spacing:.08em }
+    .sm   { font-size:11px; fill:#6b7280 }
+    .num  { font-size:11px; fill:#fff; font-weight:600 }
+    .box  { fill:#fff; stroke:#d7dae0; stroke-width:1.2; rx:9 }
+    .warn { fill:#fff5f0; stroke:#e8927c; stroke-width:1.3; rx:9 }
+    .good { fill:#f2f7ee; stroke:#94b57c; stroke-width:1.3; rx:9 }
+    .dot  { fill:#6b7280 }
+    .dotw { fill:#e8927c }
+    .arw  { stroke:#9aa1ac; stroke-width:1.4; fill:none; marker-end:url(#a) }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#9aa1ac"/></marker>
+  </defs>
+
+  <text x="34" y="36" font-size="17" fill="#1f2430" font-weight="600">The recipe: five steps, and what goes wrong at each</text>
+  <text x="34" y="57" class="sm">These models are near useless out of the box — that is by design. Everything depends on the training you do next.</text>
+
+  <!-- ===== 1 ===== -->
+  <rect class="box" x="34" y="88" width="212" height="104"/>
+  <circle cx="54" cy="110" r="10" fill="#1f2430"/><text x="54" y="114" class="num" text-anchor="middle">1</text>
+  <text x="72" y="114" class="b">Write the question</text>
+  <text x="48" y="140" class="sm">Describe each answer as a</text>
+  <text x="48" y="156" class="sm">boundary, not a name. Put the</text>
+  <text x="48" y="172" class="sm">tricky cases in the description.</text>
+
+  <path class="arw" d="M250 140 H 288"/>
+
+  <!-- ===== 2 ===== -->
+  <rect class="warn" x="292" y="88" width="212" height="104"/>
+  <circle cx="312" cy="110" r="10" fill="#e8927c"/><text x="312" y="114" class="num" text-anchor="middle">2</text>
+  <text x="330" y="114" class="b">Check it fits</text>
+  <text x="306" y="140" class="sm">The model reads a fixed, small</text>
+  <text x="306" y="156" class="sm">amount. Anything past that is</text>
+  <text x="306" y="172" class="sm">dropped without telling you.</text>
+
+  <path class="arw" d="M508 140 H 546"/>
+
+  <!-- ===== 3 ===== -->
+  <rect class="box" x="550" y="88" width="212" height="104"/>
+  <circle cx="570" cy="110" r="10" fill="#1f2430"/><text x="570" y="114" class="num" text-anchor="middle">3</text>
+  <text x="588" y="114" class="b">Train in two stages</text>
+  <text x="564" y="140" class="sm">Warm up the new parts first,</text>
+  <text x="564" y="156" class="sm">then let the whole model move.</text>
+  <text x="564" y="172" class="sm">Minutes to hours on a laptop.</text>
+
+  <!-- ===== 4 ===== -->
+  <rect class="good" x="292" y="232" width="212" height="104"/>
+  <circle cx="312" cy="254" r="10" fill="#94b57c"/><text x="312" y="258" class="num" text-anchor="middle">4</text>
+  <text x="330" y="258" class="b">Fix the confidence</text>
+  <text x="306" y="284" class="sm">Training makes it accurate, not</text>
+  <text x="306" y="300" class="sm">honest. One quick extra step</text>
+  <text x="306" y="316" class="sm">makes the odds trustworthy.</text>
+
+  <path class="arw" d="M656 196 V 212 H 398 V 226"/>
+
+  <!-- ===== 5 ===== -->
+  <rect class="box" x="34" y="232" width="212" height="104"/>
+  <circle cx="54" cy="254" r="10" fill="#1f2430"/><text x="54" y="258" class="num" text-anchor="middle">5</text>
+  <text x="72" y="258" class="b">Judge it properly</text>
+  <text x="48" y="284" class="sm">Compare against always-guess-</text>
+  <text x="48" y="300" class="sm">the-commonest-answer, and look</text>
+  <text x="48" y="316" class="sm">at every group, not the average.</text>
+
+  <path class="arw" d="M288 284 H 254" />
+
+  <!-- ===== the two traps ===== -->
+  <rect class="box" x="550" y="232" width="396" height="104"/>
+  <text x="566" y="256" class="lbl">THE TWO THAT COST US THE MOST TIME</text>
+  <circle cx="572" cy="282" r="3.5" class="dotw"/>
+  <text x="586" y="286" class="sm">Half our evidence never reached the model. It looked exactly</text>
+  <text x="586" y="302" class="sm">like the model being bad, for a whole day.</text>
+  <circle cx="572" cy="318" r="3.5" class="dotw"/>
+  <text x="586" y="322" class="sm">A great average score hid one group that was badly wrong.</text>
+
+  <!-- ===== footer band ===== -->
+  <line x1="34" y1="372" x2="946" y2="372" stroke="#e6e8ec" stroke-width="1"/>
+  <text x="34" y="398" class="lbl">WHEN THIS IS THE RIGHT TOOL</text>
+  <circle cx="40" cy="418" r="3.5" class="dot"/>
+  <text x="54" y="422" class="sm">You want a number you can act on — act at 0.9, ask a person at 0.5.</text>
+  <circle cx="40" cy="440" r="3.5" class="dot"/>
+  <text x="54" y="444" class="sm">You want it small, fast and on your own machine, trained on your own judgement calls.</text>
+  <circle cx="530" cy="418" r="3.5" class="dotw"/>
+  <text x="544" y="422" class="sm">Not if you just need the highest score — a plain classifier beat us there.</text>
+  <circle cx="530" cy="440" r="3.5" class="dotw"/>
+  <text x="544" y="444" class="sm">Not if you have no labelled examples, or your inputs are long documents.</text>
+</svg>

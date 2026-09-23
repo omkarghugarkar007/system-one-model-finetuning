@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 430" width="980" height="430" font-family="ui-sans-serif,-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
+  <rect width="980" height="430" fill="#fbfbfd"/>
+  <style>
+    .t    { font-size:12.5px; fill:#1f2430 }
+    .b    { font-size:12.5px; fill:#1f2430; font-weight:600 }
+    .lbl  { font-size:10.5px; fill:#6b7280; letter-spacing:.08em }
+    .sm   { font-size:11px; fill:#6b7280 }
+    .mono { font-size:11px; fill:#1f2430; font-family:ui-monospace,SFMono-Regular,Menlo,monospace }
+    .monog{ font-size:11px; fill:#6b7280; font-family:ui-monospace,SFMono-Regular,Menlo,monospace }
+    .box  { fill:#fff; stroke:#d7dae0; stroke-width:1.2; rx:8 }
+    .pan  { fill:#fff; stroke:#e6e8ec; stroke-width:1.2; rx:12 }
+    .chip { fill:#f4f5f7; stroke:#dfe2e7; stroke-width:1; rx:5 }
+    .mark { fill:#fff5f0; stroke:#e8927c; stroke-width:1.3; rx:5 }
+    .out  { fill:#eef4ff; stroke:#7ea3e0; stroke-width:1.3; rx:8 }
+    .bar  { fill:#7ea3e0 }
+    .barq { fill:#dbe4f4 }
+    .arw  { stroke:#9aa1ac; stroke-width:1.4; fill:none; marker-end:url(#a) }
+    .arwh { stroke:#e8927c; stroke-width:1.4; fill:none; marker-end:url(#ah) }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#9aa1ac"/></marker>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#e8927c"/></marker>
+  </defs>
+
+  <text x="34" y="36" font-size="17" fill="#1f2430" font-weight="600">How a System One model answers</text>
+  <text x="34" y="57" class="sm">It reads a situation and a question you define, and returns a probability for every answer you allowed. It never writes text.</text>
+
+  <!-- ============ INPUT ============ -->
+  <text x="34" y="94" class="lbl">WHAT YOU GIVE IT</text>
+
+  <rect class="box" x="34" y="106" width="224" height="72"/>
+  <text x="48" y="126" class="b">The situation</text>
+  <text x="48" y="146" class="monog">"I was charged twice for</text>
+  <text x="48" y="162" class="monog"> my Pro plan this month."</text>
+
+  <rect class="box" x="34" y="192" width="224" height="130"/>
+  <text x="48" y="212" class="b">Your question</text>
+  <text x="48" y="232" class="sm">Which team should handle this?</text>
+  <rect class="chip" x="48" y="242" width="196" height="22"/>
+  <text x="58" y="257" class="mono">billing</text><text x="112" y="257" class="sm">payments, refunds</text>
+  <rect class="chip" x="48" y="268" width="196" height="22"/>
+  <text x="58" y="283" class="mono">technical</text><text x="124" y="283" class="sm">bugs, outages</text>
+  <rect class="chip" x="48" y="294" width="196" height="22"/>
+  <text x="58" y="309" class="mono">account</text><text x="112" y="309" class="sm">login, permissions</text>
+
+  <path class="arw" d="M262 214 H 300"/>
+
+  <!-- ============ INSIDE ============ -->
+  <rect class="pan" x="304" y="96" width="358" height="248"/>
+  <text x="322" y="120" class="lbl">INSIDE — ONE PASS, NO GENERATION</text>
+
+  <text x="322" y="146" class="sm">Everything is laid out as a single stretch of text.</text>
+  <text x="322" y="162" class="sm">A marker is planted in front of each answer:</text>
+
+  <rect class="mark" x="322" y="174" width="52" height="24"/>
+  <text x="348" y="190" class="mono" text-anchor="middle">▸</text>
+  <rect class="chip" x="378" y="174" width="72" height="24"/>
+  <text x="414" y="190" class="mono" text-anchor="middle">billing</text>
+  <rect class="mark" x="456" y="174" width="52" height="24"/>
+  <text x="482" y="190" class="mono" text-anchor="middle">▸</text>
+  <rect class="chip" x="512" y="174" width="88" height="24"/>
+  <text x="556" y="190" class="mono" text-anchor="middle">technical</text>
+  <rect class="mark" x="322" y="204" width="52" height="24"/>
+  <text x="348" y="220" class="mono" text-anchor="middle">▸</text>
+  <rect class="chip" x="378" y="204" width="76" height="24"/>
+  <text x="416" y="220" class="mono" text-anchor="middle">account</text>
+  <text x="470" y="220" class="sm">… then the situation</text>
+
+  <path class="arwh" d="M348 232 V 256"/>
+  <path class="arwh" d="M482 232 V 256"/>
+  <path class="arwh" d="M416 232 V 256"/>
+
+  <rect class="box" x="322" y="260" width="322" height="30"/>
+  <text x="483" y="280" class="t" text-anchor="middle">the model reads the whole thing at once</text>
+
+  <path class="arw" d="M483 294 V 312"/>
+  <text x="483" y="330" class="sm" text-anchor="middle">each marker gets a score · the scores become one set of odds</text>
+
+  <path class="arw" d="M666 214 H 704"/>
+
+  <!-- ============ OUTPUT ============ -->
+  <text x="708" y="94" class="lbl">WHAT YOU GET BACK</text>
+  <rect class="out" x="708" y="106" width="238" height="216"/>
+
+  <text x="724" y="130" class="b">An answer, with odds</text>
+
+  <text x="724" y="156" class="mono">billing</text>
+  <rect class="bar" x="724" y="162" width="168" height="9" rx="2"/>
+  <text x="900" y="171" class="sm">0.82</text>
+
+  <text x="724" y="192" class="mono">technical</text>
+  <rect class="barq" x="724" y="198" width="23" height="9" rx="2"/>
+  <text x="900" y="207" class="sm">0.11</text>
+
+  <text x="724" y="228" class="mono">account</text>
+  <rect class="barq" x="724" y="234" width="14" height="9" rx="2"/>
+  <text x="900" y="243" class="sm">0.07</text>
+
+  <line x1="724" y1="262" x2="930" y2="262" stroke="#e6e8ec" stroke-width="1"/>
+  <text x="724" y="284" class="sm">The odds are the point. Your code can</text>
+  <text x="724" y="300" class="sm">act on 0.82, or ask a human at 0.45.</text>
+
+  <text x="34" y="384" class="sm">Three question shapes: <tspan class="mono" fill="#1f2430">choice</tspan> pick one of several · <tspan class="mono" fill="#1f2430">score</tspan> rate on ordered levels · <tspan class="mono" fill="#1f2430">noul</tspan> a yes/no.</text>
+  <text x="34" y="404" class="sm">You define the answers. The model cannot return anything else — no parsing, no retries, no surprises.</text>
+</svg>
