@@ -58,31 +58,41 @@ evidence.
 
 ## What it actually achieved
 
-The real experiment took **about two hours on a laptop**. We trained on one
-collection of documents and then tested on a completely different one, to see
-whether what it learned carried over.
+The real experiment: **2,000 training examples drawn from 250 search queries**,
+trained for **1 hour 45 minutes** on a laptop. We then tested it on a
+*completely different* collection of documents, to see whether what it learned
+carried over rather than just being memorised.
 
-Before training, the model was **worse than the plain keyword search** we were
-trying to improve on. After training, it was clearly better than it — a large
-move, and it held up on a collection it had never seen.
+Scores below are nDCG@10 — a standard search-quality measure from 0 to 1, where
+higher is better and 1 means a perfect ranking.
 
-Then we did the comparison most projects leave out. We put it head to head with
-an ordinary off-the-shelf model roughly **twenty times smaller**, on identical
-data. It beat us, comfortably, while running about seven times faster.
+**Before training: 0.455.** That is *worse* than the plain keyword search we
+were trying to improve on, which scores **0.528**. Untrained, the model was
+actively making things worse.
 
-Where our model won was **knowing when it was unsure**. Its confidence was
-roughly twice as trustworthy, measured after giving both models the same
-fairness adjustment.
+**After training: 0.607.** A gain of **+0.152**, taking it from well below the
+keyword baseline to clearly above it — on a collection it had never seen.
+
+Then the comparison most projects quietly leave out. We ran it head to head
+against an ordinary off-the-shelf ranking model roughly **twenty times smaller**,
+on identical data:
+
+**It scored 0.720 and beat us**, while running about seven times faster.
+
+Where our model won was **knowing when it was unsure**. Measured as calibration
+error — how far its stated confidence drifts from how often it is actually right,
+lower being better — ours was **0.111** against the smaller model's **0.192**,
+after giving both the same fairness adjustment. Roughly twice as trustworthy.
 
 That is the honest summary. If you want raw accuracy, the small ordinary model
-is the better buy. If you want a number you can safely act on, this is the
-trade you are making, and now you know its size before you spend the afternoon.
+is the better buy. If you want a number you can safely act on, this is the trade
+you are making — and now you know its exact size before you spend the afternoon.
 
 ---
 
-## Try it in a minute
+## Try it
 
-Before committing to anything, there is a tiny example that runs the whole
+Before committing to anything, there is a small example that runs the whole
 process start to finish so you can watch it work. You will need Python and
 about 2 GB of disk.
 
@@ -101,12 +111,12 @@ note about a total outage is serious, and a furious complaint about a broken
 internal dashboard is not.
 
 An untrained model goes by tone, because that is what it picked up from general
-text. After a minute of training it follows your rule instead — more answers
-right, and its confidence far more trustworthy. That second part is the one that
-matters, and it is the part most people never measure.
+text. After training it follows your rule instead — more answers right, and its
+confidence far more trustworthy. That second part is the one that matters, and
+it is the part most people never measure.
 
-This little example is a demonstration, not a result. The real work above took
-two hours and a proper dataset.
+This example is a demonstration on a small made-up task, not a result. The real
+work above used a proper dataset.
 
 ---
 
