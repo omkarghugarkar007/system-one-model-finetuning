@@ -1,100 +1,57 @@
-# Fine-tuning System One models
+# Fine-tune a small model to make decisions, not text
 
-A practical, measured guide to training a small model that makes **decisions
-you can act on** — not paragraphs you have to parse.
+**Stop asking an LLM to classify things and parsing the answer out of prose.**
+
+There is a class of small models — called **System One models** — that never
+write text. You tell them what the possible answers are, and they hand back
+**how likely each answer is**. No JSON parsing. No retries on malformed output.
+No guessing how confident the model was.
+
+They are also close to useless until you train them. **This repo is the recipe
+for training them**, with every number measured and the failures left in.
+
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org)
+[![Model](https://img.shields.io/badge/model-421M%20params-green.svg)](https://huggingface.co/convaiinnovations/laya)
+[![Hardware](https://img.shields.io/badge/trains%20on-a%20laptop-green.svg)](#try-it)
+[![Tests](https://img.shields.io/badge/tests-84%20passing-brightgreen.svg)](tests)
 
 ---
 
-## What is a System One model?
+## The problem this solves
 
-Most models you know write text. You ask a question, you get sentences back,
-and your code has to pull the answer out of them — and handle the times it
-comes back in an unexpected shape.
+You need to answer a small, repeated question. *Which team owns this ticket?
+How severe is this incident? Is this a refund request?*
 
-A System One model does something different. You tell it what the possible
-answers are. It reads the situation and hands back **how likely each answer
-is**. It cannot say anything else.
+So you call a large language model, and now you own a pile of problems:
+
+- It writes a sentence, and you write a parser for the sentence.
+- Sometimes the format changes and the parser breaks.
+- It says "billing" with total confidence whether it is sure or not.
+- You pay per call, and your data leaves your machine.
+
+A System One model removes all four. It cannot answer outside the options you
+gave it, and it tells you **how sure it is** — a number your code can branch on.
 
 ![How a System One model answers](assets/how-it-works.svg)
 
-Two models work this way today: **Laya**, which is open and runs on your own
-machine, and **Jev**, which is a paid hosted service. This guide uses Laya,
-because you can download it and train it yourself.
-
 ---
 
-## Why bother?
+## What you get
 
-**You get a number, not a sentence.** "0.82" is something your code can branch
-on. Act automatically above 0.9, send it to a person below 0.6, and you have a
-system whose behaviour you can actually reason about.
-
-**It is small and it is yours.** It runs on a laptop. Your data never leaves
-your machine. There is no per-request bill and no rate limit.
-
-**It answers fast.** No text is generated, so there is nothing to wait for
-word by word.
-
-**The catch, stated up front:** out of the box these models are close to
-useless. Laya's own documentation says so — untrained, it can do worse than
-always guessing the most common answer. That is deliberate. It is a starting
-point built to be trained on *your* problem, and the training is the whole job.
-
-That is what this guide is for.
-
----
-
-## The recipe
-
-![The recipe](assets/the-recipe.svg)
-
-Five steps. The second one is the step everyone skips and it is the one that
-quietly ruins runs — the model only reads a small, fixed amount of text, and
-anything past that is thrown away without any warning. We lost most of a day to
-exactly this, convinced the model was bad when really it was never shown the
-evidence.
-
----
-
-## What it actually achieved
-
-The real experiment: **2,000 training examples drawn from 250 search queries**,
-trained for **1 hour 45 minutes** on a laptop. We then tested it on a
-*completely different* collection of documents, to see whether what it learned
-carried over rather than just being memorised.
-
-Scores below are nDCG@10 — a standard search-quality measure from 0 to 1, where
-higher is better and 1 means a perfect ranking.
-
-**Before training: 0.455.** That is *worse* than the plain keyword search we
-were trying to improve on, which scores **0.528**. Untrained, the model was
-actively making things worse.
-
-**After training: 0.607.** A gain of **+0.152**, taking it from well below the
-keyword baseline to clearly above it — on a collection it had never seen.
-
-Then the comparison most projects quietly leave out. We ran it head to head
-against an ordinary off-the-shelf ranking model roughly **twenty times smaller**,
-on identical data:
-
-**It scored 0.720 and beat us**, while running about seven times faster.
-
-Where our model won was **knowing when it was unsure**. Measured as calibration
-error — how far its stated confidence drifts from how often it is actually right,
-lower being better — ours was **0.111** against the smaller model's **0.192**,
-after giving both the same fairness adjustment. Roughly twice as trustworthy.
-
-That is the honest summary. If you want raw accuracy, the small ordinary model
-is the better buy. If you want a number you can safely act on, this is the trade
-you are making — and now you know its exact size before you spend the afternoon.
+| | |
+|---|---|
+| **A number, not a sentence** | Act automatically at 0.9. Ask a human at 0.5. Your system's behaviour becomes something you can reason about. |
+| **Runs on your laptop** | 421M parameters. No GPU needed. Your data never leaves your machine. |
+| **No format failures** | The model physically cannot return anything outside your options. |
+| **Fast** | Nothing is generated word by word, so there is nothing to wait for. |
+| **Yours** | Apache-2.0, trained on your own judgement calls, no per-request bill. |
 
 ---
 
 ## Try it
 
-Before committing to anything, there is a small example that runs the whole
-process start to finish so you can watch it work. You will need Python and
-about 2 GB of disk.
+You need Python and about 2 GB of disk.
 
 ```bash
 git clone https://github.com/omkarghugarkar007/system-one-model-finetuning
@@ -105,24 +62,76 @@ make weights     # download the model, about 1.7 GB
 make quickstart  # train it
 ```
 
-It teaches the model to rate how serious an incident report is. The interesting
-part is that **the rule deliberately disagrees with the tone**: a calmly written
-note about a total outage is serious, and a furious complaint about a broken
+The example teaches the model to rate how serious an incident report is. The
+interesting part: **the rule deliberately disagrees with the tone.** A calmly
+written note about a total outage is serious. A furious complaint about a broken
 internal dashboard is not.
 
-An untrained model goes by tone, because that is what it picked up from general
-text. After training it follows your rule instead — more answers right, and its
-confidence far more trustworthy. That second part is the one that matters, and
-it is the part most people never measure.
+An untrained model goes by tone, because that is what it absorbed from general
+text. After training it follows *your* rule — more answers right, and its
+confidence far more trustworthy.
 
-This example is a demonstration on a small made-up task, not a result. The real
-work above used a proper dataset.
+It is a demonstration on a small made-up task, not a result. The real numbers
+are below.
+
+---
+
+## Does it actually work? Here are the real numbers
+
+We trained on **2,000 examples from 250 search queries**, for **1 hour 45
+minutes on a laptop**, then tested on a *completely different* collection of
+documents to check it had learned something rather than memorised something.
+
+Scores are nDCG@10 — a standard search-quality measure from 0 to 1, higher is
+better.
+
+| | score |
+|---|---|
+| Plain keyword search (the thing to beat) | 0.528 |
+| The model **before** training | 0.455 &nbsp;*worse than keyword search* |
+| The model **after** training | **0.607** &nbsp;*+0.152* |
+
+So: untrained it actively hurt, and training took it from well below the
+baseline to clearly above it, on data it had never seen.
+
+### And here is where it lost
+
+We then ran it against an ordinary off-the-shelf ranking model **twenty times
+smaller**, on identical data.
+
+| | score | speed |
+|---|---|---|
+| Our fine-tuned model (422M) | 0.607 | 1x |
+| **Off-the-shelf model (22M)** | **0.720** | **7x faster** |
+
+**It beat us, comfortably.** We are telling you this because you will find out
+anyway, and because it sharpens what these models are actually for.
+
+Where we won was **knowing when to doubt itself**. Calibration error — how far
+stated confidence drifts from how often it is actually right, lower is better —
+was **0.111** for ours against **0.192** for the smaller model, after giving both
+the same fairness adjustment. Roughly twice as trustworthy.
+
+**The trade:** if you want raw accuracy, use the ordinary model. If you want a
+confidence number you can safely act on, this is what you are buying, and now
+you know its exact size before spending an afternoon.
+
+---
+
+## The recipe
+
+![The recipe](assets/the-recipe.svg)
+
+Five steps. **Step 2 is the one everyone skips and the one that quietly ruins
+runs** — the model only reads a small, fixed amount of text, and anything past
+that is thrown away silently. We lost most of a day to this, convinced the model
+was bad when it had simply never been shown the evidence.
 
 ---
 
 ## Using your own data
 
-Write one line per example:
+One line per example:
 
 ```json
 {"state": "I was charged twice for my Pro plan",
@@ -133,86 +142,97 @@ Write one line per example:
  "label": "billing"}
 ```
 
-Then point the second example at your file. There are three shapes of question:
+Three shapes of question:
 
-- **choice** — pick one of several options. *Which team owns this ticket?*
-- **score** — rate on a scale where the order matters. *How severe, 0 to 3?*
-- **noul** — a plain yes or no. *Is this a refund request?*
+- **choice** — pick one of several. *Which team owns this ticket?*
+- **score** — rate on a scale where order matters. *How severe, 0 to 3?*
+- **noul** — plain yes or no. *Is this a refund request?*
 
-A tip worth more than it sounds: describe each answer as a **boundary**, not a
-name. `"billing"` tells the model nothing. `"billing: payments, invoices,
-refunds, subscription charges"` tells it where the line is. That description is
-read by the model, and improving it is the cheapest quality you can buy.
-
----
-
-## Three worked examples
-
-**Quickstart** — the whole recipe end to end, on a task that ships with it.
-Start here.
-
-**Your own data** — point it at a file of your examples and it runs the same
-process: checks your data fits, trains, scores itself, and fixes its confidence.
-
-**Is a teacher worth it?** — a common piece of advice is to have a bigger model
-label your data for you. We tested it three ways and, on our task, it made no
-difference: the bigger model simply agreed with our labels, so it had nothing to
-add. Worth running on your own data before you pay for it.
+**The highest-leverage tip in this whole repo:** describe each answer as a
+**boundary**, not a name. `"billing"` tells the model nothing.
+`"billing: payments, invoices, refunds, subscription charges"` tells it where
+the line falls. The model reads that description. Improving it is the cheapest
+quality you will ever buy.
 
 ---
 
 ## Four things that will bite you
 
-**Your text may never reach the model.** There is a small fixed budget, and when
-your answer descriptions are long they all get trimmed to fit — sometimes to
-just a few words each. The check for this runs before training and stops you.
+**1. Your text may never reach the model.** There is a small fixed budget. When
+your answer descriptions are long they all get trimmed — sometimes to a few
+words each. A check runs before training and stops you.
 
-**Where you put the information changes everything.** We moved the same content
-from one part of the input to another, changed nothing else, and the results
-improved dramatically. It is worth trying both ways on your task.
+**2. Where you put the information changes everything.** We moved the same
+content from one part of the input to another, changed nothing else, and the
+results improved dramatically. Try both ways on your task.
 
-**A good average hides bad groups.** Laya's own published numbers include an
-excellent overall confidence score that conceals one category where the model
-was badly wrong. Always look at the breakdown, never the single number.
+**3. A good average hides bad groups.** The model's own published numbers
+include an excellent overall confidence score that conceals one category where
+it was badly wrong. Always read the breakdown.
 
-**Training does not make confidence honest.** It makes the model more often
-right, but its sense of "how sure am I" drifts. There is a quick final step that
+**4. Training does not make confidence honest.** It makes the model more often
+right, but its sense of *how sure am I* drifts. There is a quick final step that
 fixes this, and it is not optional if you plan to act on the numbers.
 
 ---
 
-## When *not* to use one of these
+## When you should *not* use this
 
-We would rather tell you this than have you find out later.
+Told up front, because finding out later is worse.
 
-- **If you only need the best accuracy**, use an ordinary classifier. We tested
-  ours against a well-known small model twenty times smaller, and it beat us
-  clearly while running seven times faster. Ours was better at *knowing when it
-  was unsure* — but if you do not need that, you do not need this.
-- **If your task needs reasoning or step-by-step thinking**, these models are
-  too small. Use a bigger one.
-- **If you have no labelled examples**, there is nothing to train on, and
-  untrained these models are not useful.
-- **If your inputs are long documents**, they will not fit. You would have to
-  pick out the relevant part first, and that becomes the hard problem.
+- **You only need accuracy.** Use an ordinary classifier. Ours lost to one
+  twenty times smaller.
+- **Your task needs reasoning or multi-step thinking.** These models are too
+  small. Use a bigger one.
+- **You have no labelled examples.** There is nothing to train on, and untrained
+  these models are not useful.
+- **Your inputs are long documents.** They will not fit. You would have to pick
+  out the relevant part first, and that becomes the hard problem.
 
-Use one when you want **a trustworthy number from a small, fast, private model
-trained on your own judgement calls**.
+Use one when you want **a trustworthy confidence number from a small, fast,
+private model trained on your own judgement calls.**
 
 ---
 
-## Honesty note
+## Questions people ask
 
-This came out of a research project on search ranking. Not everything we tried
-worked, and the write-up keeps the failures in — including the one where a much
-smaller off-the-shelf model beat ours, and the two bugs that produced convincing
-results that turned out to be wrong.
+**How is this different from asking GPT with a JSON schema?**
+A schema constrains the *shape* of the answer. It does not give you a calibrated
+probability, and you still pay per call and send your data out. Here the
+probability is the product.
 
-- **THE-RECIPE** *(RECIPE.md)* — the detailed how-to, with the numbers.
-- **WHAT-WE-FOUND** *(FINDINGS.md)* — everything measured, successes and failures.
-- **THE-ORIGINAL-PLAN** *(docs/research/)* — the research this grew out of, and
-  which of its predictions survived.
+**Do I need a GPU?**
+No. Everything here was built and measured on a laptop.
 
-Apache-2.0. Built on [Laya](https://huggingface.co/convaiinnovations/laya)
-by ConvAI Innovations, following the question format from
+**How many labelled examples do I need?**
+A few hundred to see it learn. A few thousand for something you would deploy.
+
+**Which models does this work with?**
+**Laya** (open, 421M, Apache-2.0 — used throughout) and **Jev** (hosted, paid).
+Both take the same question format, so the recipe transfers.
+
+**Is this state of the art?**
+No, and we show you exactly where it loses. It is a working, honest method with
+the measurements attached.
+
+**What is it built on?**
+A ModernBERT encoder with a decision head. The training code, evaluation and
+calibration here are ours.
+
+---
+
+## Read more
+
+- **RECIPE.md** — the detailed cookbook, with all the numbers.
+- **FINDINGS.md** — everything measured, including the failures and the two bugs
+  that produced convincing results that turned out to be wrong.
+- **docs/research/** — the original research this grew out of, and which of its
+  predictions survived contact with reality.
+
+---
+
+Apache-2.0. Built on [Laya](https://huggingface.co/convaiinnovations/laya) by
+ConvAI Innovations, using the question format from
 [TypeSafe](https://docs.typesafe.ai/).
+
+If this saved you time, a star helps other people find it.
